@@ -33,7 +33,7 @@ export function ProjectInfoCard({ className }: ProductIdentityCardProps) {
           />
         </div>
         <div className="space-y-3 leading-7 text-muted-foreground">
-          <p>时光航迹是一款基于微信小程序的时光机地图应用
+          <p>时光航迹是一款基于微信小程序的时光机地图应用，用户可以通过微信小程序“时光航迹”访问服务
           </p>
         </div>
       </CardContent>

@@ -180,7 +180,7 @@ export function ContactUsCard() {
       <Dialog open={successOpen} onOpenChange={setSuccessOpen}>
         <DialogContent className="rounded-none font-mono">
           <DialogHeader>
-            <DialogTitle>工单已提交</DialogTitle>
+            <DialogTitle>已提交</DialogTitle>
             <DialogDescription>
               感谢您的反馈，我们会尽快处理您的问题。
             </DialogDescription>

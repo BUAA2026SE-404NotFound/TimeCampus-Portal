@@ -20,7 +20,7 @@ export function AdminConsoleCard() {
         <CardTitle className="text-2xl">管理员入口</CardTitle>
       </CardHeader>
       <CardContent className="flex-1 space-y-3 leading-7 text-muted-foreground">
-        <p>管理员可登录后台处理工单、进行内容审核与内容管理</p>
+        <p>管理员可登录后台处理反馈、进行内容审核与内容管理</p>
       </CardContent>
       <CardFooter className="grid grid-cols-2 gap-2 border-t bg-muted/30">
         <Button className="rounded-none bg-[#171717] font-mono text-white hover:bg-[#2a2a2a] dark:bg-white dark:text-black dark:hover:bg-white/85">

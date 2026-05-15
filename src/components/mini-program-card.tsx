@@ -26,7 +26,7 @@ export function MiniProgramCard({ className }: MiniProgramCardProps) {
       </CardHeader>
       <CardContent className="grid flex-1 gap-4 sm:grid-cols-[1fr_160px]">
         <div className="space-y-3 leading-7 text-muted-foreground">
-          <p>小程序面向用户展示校园地图与兴趣点、校园历史影像、冷知识等内容</p>
+          <p>小程序基于腾讯地图面向用户展示校园地图与兴趣点、校园历史影像、冷知识等内容</p>
         </div>
         <div className="grid size-40 place-items-center border bg-muted/30 p-6">
           <img

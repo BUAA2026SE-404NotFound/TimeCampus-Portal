@@ -12,7 +12,7 @@ function getResolvedTheme() {
 function ThemeIcon() {
   return (
     <svg
-      className="size-[18px]"
+      className="size-4.5"
       xmlns="http://www.w3.org/2000/svg"
       width="24"
       height="24"
