@@ -31,7 +31,7 @@ const initialFormState: ContactFormState = {
   message: "",
 }
 
-export function ContactFormCard() {
+export function ContactUsCard() {
   const [form, setForm] = useState<ContactFormState>(initialFormState)
   const [formOpen, setFormOpen] = useState(false)
   const [successOpen, setSuccessOpen] = useState(false)
@@ -49,12 +49,15 @@ export function ContactFormCard() {
 
   return (
     <>
-      <Card className="h-full rounded-none bg-white font-mono shadow-none">
+      <Card
+        id="contact-us"
+        className="h-full scroll-mt-6 rounded-none bg-card font-mono shadow-none"
+      >
         <CardHeader>
           <p className="text-sm font-semibold text-muted-foreground uppercase">
-            Support Desk
+            Contact Us
           </p>
-          <CardTitle className="text-2xl leading-tight">问题反馈</CardTitle>
+          <CardTitle className="text-2xl leading-tight">联系我们</CardTitle>
         </CardHeader>
         <CardContent className="flex-1 space-y-3 leading-7 text-muted-foreground">
           <p>
@@ -63,15 +66,15 @@ export function ContactFormCard() {
               kurna2026@outlook.com
             </a>
           </p>
-          <p>目前仅测试开发使用</p>
+          <p>在线提交目前仅测试开发使用</p>
         </CardContent>
         <CardFooter className="border-t bg-muted/30">
           <Button
             type="button"
-            className="w-full rounded-none bg-[#171717] font-mono text-white hover:bg-[#2a2a2a]"
+            className="w-full rounded-none bg-[#171717] font-mono text-white hover:bg-[#2a2a2a] dark:bg-white dark:text-black dark:hover:bg-white/85"
             onClick={() => setFormOpen(true)}
           >
-            提交工单
+            提交反馈
           </Button>
         </CardFooter>
       </Card>
@@ -80,7 +83,7 @@ export function ContactFormCard() {
         <DialogContent className="max-h-[90svh] overflow-y-auto rounded-none font-mono sm:max-w-xl">
           <form onSubmit={handleSubmit} className="space-y-6">
             <DialogHeader className="text-left">
-              <DialogTitle>提交工单</DialogTitle>
+              <DialogTitle>反馈提交</DialogTitle>
               <DialogDescription>
                 请填写以下表单，我们会尽快处理您的问题。
               </DialogDescription>
@@ -139,7 +142,7 @@ export function ContactFormCard() {
               </div>
               <div className="grid gap-2">
                 <label className="text-sm font-medium" htmlFor="message">
-                  内容
+                  具体内容
                 </label>
                 <textarea
                   id="message"
@@ -165,7 +168,7 @@ export function ContactFormCard() {
               </Button>
               <Button
                 type="submit"
-                className="rounded-none bg-[#171717] font-mono text-white hover:bg-[#2a2a2a]"
+                className="rounded-none bg-[#171717] font-mono text-white hover:bg-[#2a2a2a] dark:bg-white dark:text-black dark:hover:bg-white/85"
               >
                 提交
               </Button>
@@ -179,8 +182,7 @@ export function ContactFormCard() {
           <DialogHeader>
             <DialogTitle>工单已提交</DialogTitle>
             <DialogDescription>
-              表单当前使用本地交互演示，后续可以在 API adapter
-              中接入真实提交接口。
+              感谢您的反馈，我们会尽快处理您的问题。
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>

@@ -23,9 +23,9 @@ function MiitLogo() {
 
 export function SiteFooter() {
   return (
-    <footer className="grid gap-4 border border-[#171717] bg-[#171717] p-5 font-mono text-sm text-white sm:grid-cols-[1fr_auto]">
-      <div className="space-y-2">
-        <div className="flex flex-wrap gap-x-4 gap-y-2 text-white/70">
+    <footer className="bg-[#171717] font-mono text-sm text-white dark:bg-[#1f1f1f]">
+      <div className="mx-auto grid w-full max-w-6xl gap-4 px-4 py-6 sm:px-6">
+        <div className="flex flex-wrap gap-x-5 gap-y-2 text-white/70">
           {footerLinks.map((item) => (
             <span key={item}>{item}</span>
           ))}
