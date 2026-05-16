@@ -28,6 +28,12 @@
   --border: oklch(0.922 0 0);
   --input: oklch(0.922 0 0);
   --ring: oklch(0.708 0 0);
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.205 0 0);
+  --sidebar-accent: oklch(0.94 0 0);
+  --sidebar-accent-foreground: oklch(0.145 0 0);
+  --sidebar-border: oklch(0.88 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
 }
 
 .dark {
@@ -49,13 +55,21 @@
   --border: oklch(1 0 0 / 18%);
   --input: oklch(1 0 0 / 18%);
   --ring: oklch(0.72 0 0);
+  --sidebar: oklch(0.22 0 0);
+  --sidebar-foreground: oklch(0.94 0 0);
+  --sidebar-accent: oklch(0.32 0 0);
+  --sidebar-accent-foreground: oklch(0.96 0 0);
+  --sidebar-border: oklch(1 0 0 / 16%);
+  --sidebar-ring: oklch(0.72 0 0);
 }
 
 @theme inline {
-  --font-sans: "JetBrains Mono Variable", "Noto Sans SC", ui-monospace,
-    SFMono-Regular, monospace;
-  --font-mono: "JetBrains Mono Variable", "Noto Sans SC", ui-monospace,
-    SFMono-Regular, monospace;
+  --font-sans:
+    "JetBrains Mono Variable", "Noto Sans SC", ui-monospace, SFMono-Regular,
+    monospace;
+  --font-mono:
+    "JetBrains Mono Variable", "Noto Sans SC", ui-monospace, SFMono-Regular,
+    monospace;
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -78,6 +92,12 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
 }
 
 @layer base {
@@ -86,6 +106,6 @@
   }
 
   body {
-    @apply bg-background text-foreground font-sans;
+    @apply bg-background font-sans text-foreground;
   }
 }

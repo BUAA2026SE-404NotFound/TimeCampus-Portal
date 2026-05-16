@@ -7,7 +7,11 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 
-export function AdminConsoleCard() {
+type AdminConsoleCardProps = {
+  onEnter?: () => void
+}
+
+export function AdminConsoleCard({ onEnter }: AdminConsoleCardProps) {
   return (
     <Card
       id="admin-console"
@@ -23,7 +27,10 @@ export function AdminConsoleCard() {
         <p>管理员可登录后台处理反馈、进行内容审核与内容管理</p>
       </CardContent>
       <CardFooter className="grid grid-cols-2 gap-2 border-t bg-muted/30">
-        <Button className="rounded-none bg-[#171717] font-mono text-white hover:bg-[#2a2a2a] dark:bg-white dark:text-black dark:hover:bg-white/85">
+        <Button
+          className="rounded-none bg-[#171717] font-mono text-white hover:bg-[#2a2a2a] dark:bg-white dark:text-black dark:hover:bg-white/85"
+          onClick={onEnter}
+        >
           登录
         </Button>
         <Button
