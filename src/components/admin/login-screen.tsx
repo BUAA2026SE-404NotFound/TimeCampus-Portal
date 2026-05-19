@@ -36,6 +36,8 @@ export function LoginScreen({
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
+    if (loading) return
+
     setLoading(true)
 
     try {

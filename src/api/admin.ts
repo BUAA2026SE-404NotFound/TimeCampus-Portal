@@ -411,12 +411,18 @@ export async function getAdminSnapshot(): Promise<AdminSnapshot> {
           fileName: "后端官方影像",
           type: "OFFICIAL",
           total: media.length,
-          success: media.filter((item) => item.reviewStatus === "approved")
-            .length,
+          success: media.filter(
+            (item) => normalizeReviewStatus(item.reviewStatus) === "APPROVED"
+          ).length,
           reviewStatus: "APPROVED",
           publishStatus: "VISIBLE",
           operator: storedProfile?.name || "admin",
-          createdAt: new Date().toLocaleString("zh-CN", { hour12: false }),
+          createdAt:
+            media
+              .map((item) => item.createTime || item.updateTime)
+              .filter(Boolean)
+              .sort()
+              .at(-1) || "-",
         },
       ]
     : officialImports
@@ -495,6 +501,15 @@ export async function createPoi(payload: PoiPayload) {
   return toPoi(
     await apiRequest<BackendPoi>("/admin/pois", {
       method: "POST",
+      body: payload,
+    })
+  )
+}
+
+export async function updatePoi(id: string, payload: Partial<PoiPayload>) {
+  return toPoi(
+    await apiRequest<BackendPoi>(`/admin/pois/${id}`, {
+      method: "PUT",
       body: payload,
     })
   )

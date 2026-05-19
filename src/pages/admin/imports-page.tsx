@@ -37,24 +37,39 @@ export function ImportsPage({
   const [imagePath, setImagePath] = useState("")
   const [year, setYear] = useState("2000")
   const [description, setDescription] = useState("")
+  const [submitting, setSubmitting] = useState(false)
 
   async function handleImport() {
+    if (submitting) return
+
+    const numericPoiId = Number(poiId)
+    const numericYear = Number(year)
+    if (!numericPoiId || !imagePath.trim() || !numericYear) {
+      toast.error("请填写 POI ID、图片路径和年份")
+      return
+    }
+
+    setSubmitting(true)
     try {
       const result = await importOfficialContent({
         items: [
           {
-            poiId: Number(poiId),
-            imagePath,
-            year: Number(year),
-            description,
+            poiId: numericPoiId,
+            imagePath: imagePath.trim(),
+            year: numericYear,
+            description: description.trim(),
             reviewStatus: "approved",
           },
         ],
       })
       toast.success(`导入完成：${result.successCount}/${result.total}`)
+      setImagePath("")
+      setDescription("")
       onChanged()
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "导入失败")
+    } finally {
+      setSubmitting(false)
     }
   }
 
@@ -112,9 +127,10 @@ export function ImportsPage({
           <Button
             className="w-full rounded-none font-mono"
             onClick={handleImport}
+            disabled={submitting}
           >
             <Upload data-icon="inline-start" />
-            开始导入
+            {submitting ? "导入中" : "开始导入"}
           </Button>
         </CardFooter>
       </Card>
@@ -124,21 +140,26 @@ export function ImportsPage({
           <CardTitle>导入记录</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
-          <Table>
+          <Table className="table-fixed">
             <TableHeader>
               <TableRow>
-                <TableHead>来源</TableHead>
-                <TableHead>成功 / 总数</TableHead>
-                <TableHead>审核</TableHead>
-                <TableHead>发布</TableHead>
-                <TableHead>操作人</TableHead>
-                <TableHead>时间</TableHead>
+                <TableHead>来源 / 类型</TableHead>
+                <TableHead className="w-28">成功 / 总数</TableHead>
+                <TableHead className="w-24">审核</TableHead>
+                <TableHead className="w-24">发布</TableHead>
+                <TableHead className="w-36">操作人</TableHead>
+                <TableHead className="w-44">导入时间</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {snapshot.imports.map((item) => (
                 <TableRow key={item.id}>
-                  <TableCell className="font-medium">{item.fileName}</TableCell>
+                  <TableCell className="whitespace-normal">
+                    <p className="line-clamp-2 font-medium">{item.fileName}</p>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      {item.type}
+                    </p>
+                  </TableCell>
                   <TableCell>
                     {item.success} / {item.total}
                   </TableCell>
@@ -148,7 +169,9 @@ export function ImportsPage({
                   <TableCell>
                     <StatusBadge status={item.publishStatus} />
                   </TableCell>
-                  <TableCell>{item.operator}</TableCell>
+                  <TableCell className="whitespace-normal">
+                    <span className="line-clamp-2">{item.operator}</span>
+                  </TableCell>
                   <TableCell>{item.createdAt}</TableCell>
                 </TableRow>
               ))}

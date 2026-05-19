@@ -1,3 +1,5 @@
+import ghsLogo from "@/assets/ghs.png"
+
 const footerLinks = ["隐私与安全", "用户内容规范", "开发团队联系"]
 
 function GithubLogo() {
@@ -16,7 +18,7 @@ function GithubLogo() {
 function MiitLogo() {
   return (
     <span className="grid size-4 shrink-0 place-items-center" aria-hidden="true">
-      <img className="size-full object-contain" src="/ghs.png" alt="" />
+      <img className="size-full object-contain" src={ghsLogo} alt="" />
     </span>
   )
 }

@@ -1,15 +1,16 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Skeleton } from "@/components/ui/skeleton"
-import { DashboardPage } from "@/components/admin/pages/dashboard-page"
-import { ImportsPage } from "@/components/admin/pages/imports-page"
-import { LogsPage } from "@/components/admin/pages/logs-page"
-import { MapToolsPage, OpsMapPage } from "@/components/admin/pages/map-pages"
-import { PoiPage } from "@/components/admin/pages/poi-page"
+import { DashboardPage } from "@/pages/admin/dashboard-page"
+import { ImportsPage } from "@/pages/admin/imports-page"
+import { LogsPage } from "@/pages/admin/logs-page"
+import { MapToolsPage } from "@/pages/admin/map-tools-page"
+import { OpsMapPage } from "@/pages/admin/ops-map-page"
+import { PoiPage } from "@/pages/admin/poi-page"
 import {
   CommentReviewPage,
   UgcReviewPage,
-} from "@/components/admin/pages/review-pages"
+} from "@/pages/admin/review-pages"
 import type { PageId } from "@/components/admin/types"
 import type { AdminSnapshot } from "@/api/admin"
 

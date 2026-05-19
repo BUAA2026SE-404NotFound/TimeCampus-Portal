@@ -1,24 +1,38 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
 
 import { AdminConsole } from "@/components/admin-console"
-import { AdminConsoleCard } from "@/components/admin-console-card"
 import {
   getAdminPagePath,
   getPageFromPath,
   type PageId,
 } from "@/components/admin/types"
-import { ContactUsCard } from "@/components/contact-us-card"
-import { MiniProgramCard } from "@/components/mini-program-card"
-import { ProjectInfoCard } from "@/components/project-info-card"
-import { SiteFooter } from "@/components/site-footer"
-import { SiteHeader } from "@/components/site-header"
+import { PortalPage } from "@/pages/portal-page"
+
+function isAdminPath(pathname: string) {
+  return pathname === "/admin" || pathname.startsWith("/admin/")
+}
+
+function getCanonicalPath(pathname: string) {
+  return isAdminPath(pathname) ? getAdminPagePath(getPageFromPath(pathname)) : pathname
+}
 
 export function App() {
-  const [pathname, setPathname] = useState(() => window.location.pathname)
+  const [pathname, setPathname] = useState(() =>
+    getCanonicalPath(window.location.pathname)
+  )
 
   useEffect(() => {
+    const canonicalPath = getCanonicalPath(window.location.pathname)
+    if (window.location.pathname !== canonicalPath) {
+      window.history.replaceState(null, "", canonicalPath)
+    }
+
     function handlePopState() {
-      setPathname(window.location.pathname)
+      const nextPath = getCanonicalPath(window.location.pathname)
+      if (window.location.pathname !== nextPath) {
+        window.history.replaceState(null, "", nextPath)
+      }
+      setPathname(nextPath)
     }
 
     window.addEventListener("popstate", handlePopState)
@@ -33,23 +47,7 @@ export function App() {
   }, [])
 
   const activePage = useMemo(() => getPageFromPath(pathname), [pathname])
-  const isAdminRoute = pathname === "/admin" || pathname.startsWith("/admin/")
-
-  useEffect(() => {
-    if (!isAdminRoute) {
-      return
-    }
-
-    const canonicalPath = getAdminPagePath(activePage)
-    const normalizedPath = pathname.replace(/\/+$/, "") || "/"
-
-    if (normalizedPath !== canonicalPath) {
-      queueMicrotask(() => {
-        window.history.replaceState(null, "", canonicalPath)
-        setPathname(canonicalPath)
-      })
-    }
-  }, [activePage, isAdminRoute, pathname])
+  const isAdminRoute = isAdminPath(pathname)
 
   function handleAdminPageChange(page: PageId) {
     navigate(getAdminPagePath(page))
@@ -65,22 +63,7 @@ export function App() {
     )
   }
 
-  return (
-    <div className="flex min-h-svh flex-col bg-[#f2f2f2] text-foreground dark:bg-[#262626]">
-      <SiteHeader />
-      <main className="flex-1 px-4 py-6 sm:px-6">
-        <div className="mx-auto w-full max-w-6xl">
-          <section className="grid gap-4 landscape:grid-cols-2">
-            <ProjectInfoCard />
-            <MiniProgramCard />
-            <AdminConsoleCard onEnter={() => navigate("/admin/dashboard")} />
-            <ContactUsCard />
-          </section>
-        </div>
-      </main>
-      <SiteFooter />
-    </div>
-  )
+  return <PortalPage onEnterAdmin={() => navigate("/admin/dashboard")} />
 }
 
 export default App

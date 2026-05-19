@@ -2,12 +2,13 @@ import type { ReactNode } from "react"
 
 import { Badge } from "@/components/ui/badge"
 import { TableCell, TableRow } from "@/components/ui/table"
+import projectLogo from "@/assets/project-logo.jpg"
 import type { Poi, PublishStatus, ReviewStatus } from "@/mocks/admin"
 
 const statusText: Record<ReviewStatus | PublishStatus | Poi["status"], string> =
   {
-    ACTIVE: "启用",
-    INACTIVE: "停用",
+    ACTIVE: "已启用",
+    INACTIVE: "已停用",
     PENDING: "待审核",
     APPROVED: "已通过",
     REJECTED: "已驳回",
@@ -20,7 +21,7 @@ export function AdminLogo() {
     <div className="grid size-10 place-items-center border bg-background">
       <img
         className="max-h-7 max-w-7 object-contain"
-        src="/project-logo.jpg"
+        src={projectLogo}
         alt="时光航迹 Logo"
       />
     </div>

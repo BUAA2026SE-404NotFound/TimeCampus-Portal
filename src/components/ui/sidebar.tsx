@@ -17,7 +17,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { useIsMobile } from "@/hooks/use-mobile"
-import { cn } from "@/lib/utils"
+import { mergeClassName } from "@/lib/utils"
 
 type SidebarContextValue = {
   open: boolean
@@ -103,7 +103,7 @@ function SidebarProvider({
     <SidebarContext.Provider value={context}>
       <div
         data-slot="sidebar-wrapper"
-        className={cn("flex min-h-svh w-full bg-sidebar", className)}
+        className={mergeClassName("flex min-h-svh w-full bg-sidebar", className)}
         style={
           {
             "--sidebar-width": "16rem",
@@ -153,7 +153,7 @@ function Sidebar({
       data-slot="sidebar"
       data-state={open ? "expanded" : "collapsed"}
       data-collapsible={collapsible}
-      className={cn(
+      className={mergeClassName(
         "hidden min-h-svh shrink-0 border-r bg-sidebar text-sidebar-foreground transition-[width] duration-200 md:flex",
         open || collapsible === "none"
           ? "w-[var(--sidebar-width)]"
@@ -171,7 +171,7 @@ function SidebarInset({ className, ...props }: React.ComponentProps<"main">) {
   return (
     <main
       data-slot="sidebar-inset"
-      className={cn("flex min-w-0 flex-1 flex-col bg-background", className)}
+      className={mergeClassName("flex min-w-0 flex-1 flex-col bg-background", className)}
       {...props}
     />
   )
@@ -189,7 +189,7 @@ function SidebarTrigger({
       data-slot="sidebar-trigger"
       variant="ghost"
       size="icon"
-      className={cn("rounded-none md:hidden", className)}
+      className={mergeClassName("rounded-none md:hidden", className)}
       onClick={(event) => {
         onClick?.(event)
         toggleSidebar()
@@ -210,7 +210,7 @@ function SidebarRail({ className, ...props }: React.ComponentProps<"button">) {
       type="button"
       aria-label="切换侧边栏"
       data-slot="sidebar-rail"
-      className={cn(
+      className={mergeClassName(
         "absolute inset-y-0 right-0 hidden w-px bg-sidebar-border md:block",
         className
       )}
@@ -224,7 +224,7 @@ function SidebarHeader({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="sidebar-header"
-      className={cn("flex flex-col gap-2 p-3", className)}
+      className={mergeClassName("flex flex-col gap-2 p-3", className)}
       {...props}
     />
   )
@@ -234,7 +234,7 @@ function SidebarFooter({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="sidebar-footer"
-      className={cn("mt-auto flex flex-col gap-2 p-3", className)}
+      className={mergeClassName("mt-auto flex flex-col gap-2 p-3", className)}
       {...props}
     />
   )
@@ -244,7 +244,7 @@ function SidebarContent({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="sidebar-content"
-      className={cn(
+      className={mergeClassName(
         "flex min-h-0 flex-1 flex-col gap-1 overflow-auto p-2",
         className
       )}
@@ -257,7 +257,7 @@ function SidebarGroup({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="sidebar-group"
-      className={cn("flex min-w-0 flex-col gap-1", className)}
+      className={mergeClassName("flex min-w-0 flex-col gap-1", className)}
       {...props}
     />
   )
@@ -276,7 +276,7 @@ function SidebarGroupLabel({
   return (
     <div
       data-slot="sidebar-group-label"
-      className={cn(
+      className={mergeClassName(
         "px-2 py-1.5 text-xs font-medium text-sidebar-foreground/70",
         className
       )}
@@ -292,7 +292,7 @@ function SidebarGroupContent({
   return (
     <div
       data-slot="sidebar-group-content"
-      className={cn("min-w-0", className)}
+      className={mergeClassName("min-w-0", className)}
       {...props}
     />
   )
@@ -302,7 +302,7 @@ function SidebarMenu({ className, ...props }: React.ComponentProps<"ul">) {
   return (
     <ul
       data-slot="sidebar-menu"
-      className={cn("flex min-w-0 flex-col gap-1", className)}
+      className={mergeClassName("flex min-w-0 flex-col gap-1", className)}
       {...props}
     />
   )
@@ -312,7 +312,7 @@ function SidebarMenuItem({ className, ...props }: React.ComponentProps<"li">) {
   return (
     <li
       data-slot="sidebar-menu-item"
-      className={cn("relative min-w-0", className)}
+      className={mergeClassName("relative min-w-0", className)}
       {...props}
     />
   )
@@ -337,7 +337,7 @@ function SidebarMenuButton({
     <Comp
       data-slot="sidebar-menu-button"
       data-active={isActive}
-      className={cn(
+      className={mergeClassName(
         "flex h-9 w-full min-w-0 items-center gap-2 rounded-none px-2 text-left text-sm transition-colors outline-none hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 focus-visible:ring-sidebar-ring data-[active=true]:bg-sidebar-accent data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
         !open && "justify-center px-0",
         className
@@ -373,7 +373,7 @@ function SidebarMenuBadge({
   return (
     <div
       data-slot="sidebar-menu-badge"
-      className={cn(
+      className={mergeClassName(
         "absolute top-2 right-2 grid h-5 min-w-5 place-items-center rounded-none px-1 text-xs text-sidebar-foreground/70",
         className
       )}
@@ -389,7 +389,7 @@ function SidebarSeparator({
   return (
     <Separator
       data-slot="sidebar-separator"
-      className={cn("my-2 bg-sidebar-border", className)}
+      className={mergeClassName("my-2 bg-sidebar-border", className)}
       {...props}
     />
   )

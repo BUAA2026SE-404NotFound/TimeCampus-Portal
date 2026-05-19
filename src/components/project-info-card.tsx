@@ -6,7 +6,8 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { cn } from "@/lib/utils"
+import projectLogo from "@/assets/project-logo.jpg"
+import { mergeClassName } from "@/lib/utils"
 
 type ProductIdentityCardProps = {
   className?: string
@@ -16,7 +17,7 @@ export function ProjectInfoCard({ className }: ProductIdentityCardProps) {
   return (
     <Card
       id="project-info"
-      className={cn("h-full scroll-mt-6 rounded-none bg-card font-mono shadow-none", className)}
+      className={mergeClassName("h-full scroll-mt-6 rounded-none bg-card font-mono shadow-none", className)}
     >
       <CardHeader>
         <p className="text-sm font-semibold text-muted-foreground uppercase">
@@ -28,7 +29,7 @@ export function ProjectInfoCard({ className }: ProductIdentityCardProps) {
         <div className="grid size-40 place-items-center border bg-muted/30 p-6">
           <img
             className="max-h-full max-w-full object-contain"
-            src="/project-logo.jpg"
+            src={projectLogo}
             alt="时光航迹 Logo"
           />
         </div>

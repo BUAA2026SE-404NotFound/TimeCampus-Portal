@@ -62,14 +62,14 @@ export function LogsPage({ snapshot }: { snapshot: AdminSnapshot }) {
         </CardAction>
       </CardHeader>
       <CardContent className="p-0">
-        <Table>
+        <Table className="table-fixed">
           <TableHeader>
             <TableRow>
-              <TableHead>类型</TableHead>
+              <TableHead className="w-40">类型</TableHead>
               <TableHead>操作</TableHead>
-              <TableHead>对象</TableHead>
-              <TableHead>操作人</TableHead>
-              <TableHead>时间</TableHead>
+              <TableHead className="w-36">对象</TableHead>
+              <TableHead className="w-36">操作人</TableHead>
+              <TableHead className="w-44">时间</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -80,9 +80,11 @@ export function LogsPage({ snapshot }: { snapshot: AdminSnapshot }) {
                     {log.type}
                   </Badge>
                 </TableCell>
-                <TableCell className="max-w-md">{log.action}</TableCell>
-                <TableCell>{log.target}</TableCell>
-                <TableCell>{log.operator}</TableCell>
+                <TableCell className="whitespace-normal">
+                  <p className="line-clamp-3">{log.action}</p>
+                </TableCell>
+                <TableCell className="truncate">{log.target}</TableCell>
+                <TableCell className="truncate">{log.operator}</TableCell>
                 <TableCell>{log.createdAt}</TableCell>
               </TableRow>
             ))}

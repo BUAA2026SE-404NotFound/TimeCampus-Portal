@@ -1,7 +1,7 @@
 import * as React from "react"
 
 import { useTheme } from "@/components/theme-provider"
-import { cn } from "@/lib/utils"
+import { mergeClassName } from "@/lib/utils"
 
 const COLOR_SCHEME_QUERY = "(prefers-color-scheme: dark)"
 
@@ -63,7 +63,7 @@ export function ThemeToggle() {
   return (
     <button
       type="button"
-      className={cn(
+      className={mergeClassName(
         "grid size-9 shrink-0 place-items-center border font-mono",
         isDark
           ? "border-white bg-white text-black hover:bg-white/85"

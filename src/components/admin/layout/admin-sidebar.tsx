@@ -19,7 +19,7 @@ import {
   SidebarSeparator,
   useSidebar,
 } from "@/components/ui/sidebar"
-import { cn } from "@/lib/utils"
+import { mergeClassName } from "@/lib/utils"
 import type { AdminProfile } from "@/mocks/admin"
 
 export function AdminSidebar({
@@ -43,7 +43,7 @@ export function AdminSidebar({
     <Sidebar collapsible="icon" className="font-mono">
       <SidebarHeader>
         <div
-          className={cn("flex items-center gap-3", !open && "justify-center")}
+          className={mergeClassName("flex items-center gap-3", !open && "justify-center")}
         >
           <AdminLogo />
           {open && (
@@ -104,7 +104,7 @@ export function AdminSidebar({
       </SidebarContent>
       <SidebarFooter>
         <div
-          className={cn("flex items-center gap-3", !open && "justify-center")}
+          className={mergeClassName("flex items-center gap-3", !open && "justify-center")}
         >
           <Avatar className="size-9 rounded-none">
             <AvatarFallback className="rounded-none">

@@ -118,12 +118,12 @@ export function DashboardPage({ snapshot }: { snapshot: AdminSnapshot }) {
             heat = favoriteCount * 12 + commentCount * 8 + mediaCount * 20
           </CardDescription>
           <CardContent>
-            <Table>
+            <Table className="table-fixed">
               <TableHeader>
                 <TableRow>
-                  <TableHead>POI</TableHead>
+                  <TableHead className="w-44">POI</TableHead>
                   <TableHead>校区/简介</TableHead>
-                  <TableHead className="text-right">互动热度</TableHead>
+                  <TableHead className="w-24 text-right">互动热度</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -131,8 +131,14 @@ export function DashboardPage({ snapshot }: { snapshot: AdminSnapshot }) {
                   .sort((a, b) => b.heat - a.heat)
                   .map((poi) => (
                     <TableRow key={poi.id}>
-                      <TableCell className="font-medium">{poi.name}</TableCell>
-                      <TableCell>{poi.region}</TableCell>
+                      <TableCell className="whitespace-normal">
+                        <span className="line-clamp-2 font-medium">
+                          {poi.name}
+                        </span>
+                      </TableCell>
+                      <TableCell className="whitespace-normal">
+                        <span className="line-clamp-2">{poi.region}</span>
+                      </TableCell>
                       <TableCell className="text-right">{poi.heat}</TableCell>
                     </TableRow>
                   ))}
@@ -156,7 +162,7 @@ export function DashboardPage({ snapshot }: { snapshot: AdminSnapshot }) {
                     {log.createdAt}
                   </span>
                 </div>
-                <p className="mt-2 text-sm">{log.action}</p>
+                <p className="mt-2 line-clamp-3 text-sm">{log.action}</p>
               </div>
             ))}
           </CardContent>

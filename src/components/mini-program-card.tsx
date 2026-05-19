@@ -6,7 +6,8 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { cn } from "@/lib/utils"
+import miniProgramImage from "@/assets/mini-program.jpg"
+import { mergeClassName } from "@/lib/utils"
 
 type MiniProgramCardProps = {
   className?: string
@@ -16,7 +17,7 @@ export function MiniProgramCard({ className }: MiniProgramCardProps) {
   return (
     <Card
       id="mini-program"
-      className={cn("h-full scroll-mt-6 rounded-none bg-card font-mono shadow-none", className)}
+      className={mergeClassName("h-full scroll-mt-6 rounded-none bg-card font-mono shadow-none", className)}
     >
       <CardHeader>
         <p className="text-sm font-semibold text-muted-foreground uppercase">
@@ -31,7 +32,7 @@ export function MiniProgramCard({ className }: MiniProgramCardProps) {
         <div className="grid size-40 place-items-center border bg-muted/30 p-6">
           <img
             className="max-h-full max-w-full object-contain"
-            src="/mini-program.jpg"
+            src={miniProgramImage}
             alt="小程序码"
           />
         </div>
