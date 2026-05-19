@@ -1,0 +1,54 @@
+name: release
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Build And Deploy On Tencent Cloud
+    runs-on: ubuntu-latest
+    env:
+      SERVER_HOST: ${{ secrets.DEPLOY_HOST }}
+      SERVER_USERNAME: ${{ secrets.DEPLOY_USERNAME }}
+      SERVER_PASSWORD: ${{ secrets.DEPLOY_PASSWORD }}
+      DEPLOY_BRANCH: main
+
+    steps:
+      - name: Deploy on cloud server
+        if: ${{ env.SERVER_HOST != '' && env.SERVER_USERNAME != '' && env.SERVER_PASSWORD != '' }}
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ env.SERVER_HOST }}
+          username: ${{ env.SERVER_USERNAME }}
+          password: ${{ env.SERVER_PASSWORD }}
+          script: |
+            set -e
+            
+            REPO_DIR=~/TimeCampus-Portal
+            APP_DIR=~/nginx/timecampus-portal
+            REPO_URL=https://github.com/BUAA2026SE-404NotFound/TimeCampus-Portal.git
+            if [ ! -d "$REPO_DIR" ]; then
+              git clone $REPO_URL $REPO_DIR
+            fi
+            cd $REPO_DIR
+            git checkout ${{ env.DEPLOY_BRANCH }}
+            git pull origin ${{ env.DEPLOY_BRANCH }}
+            
+            if [ ! command -v pnpm &> /dev/null ]; then
+              exit 1
+            fi
+            
+            # 构建项目
+            pnpm install
+            pnpm run build
+            
+            # 部署到 nginx 目录
+            rm -rf $APP_DIR
+            cp -r dist $APP_DIR
+            
+            echo "Deployment completed successfully!"
