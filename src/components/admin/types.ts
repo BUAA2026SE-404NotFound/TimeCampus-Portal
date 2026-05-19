@@ -111,35 +111,35 @@ export const pageTitles: Record<
 > = {
   dashboard: {
     title: "运营首页",
-    description: "Alpha 阶段核心指标、审核队列与近期操作概览。",
+    description: "展示运营数据概览，内容覆盖与审核状态。",
   },
   pois: {
     title: "POI 管理",
     description: "维护校园兴趣点、坐标、状态和内容覆盖。",
   },
   imports: {
-    title: "官方内容批量导入",
-    description: "导入官方历史影像与内容，默认通过审核并可见。",
+    title: "平台内容批量导入",
+    description: "手动导入历史影像与内容。",
   },
   ugc: {
     title: "UGC 审核",
     description: "处理用户投稿，驳回时必须填写明确原因。",
   },
   comments: {
-    title: "评论审核",
-    description: "审核用户评论，保留审核状态与操作痕迹。",
+    title: "评论审核（已废弃）",
+    description: "审核用户评论，保留审核状态与操作痕迹。（因为微信小程序服务策略，现已废弃评论功能）",
   },
   "map-tools": {
     title: "地图工具",
-    description: "通过后端封装接口完成逆地理编码与 POI 搜索。",
+    description: "通过后端封装接口提供逆地理编码与 POI 搜索。",
   },
   "ops-map": {
     title: "运营地图",
-    description: "查看校区内容覆盖、互动热度和异常区域。",
+    description: "查看校区内容覆盖、互动热度和 POI",
   },
   logs: {
     title: "审计日志",
-    description: "查询后台关键操作记录，便于回溯与排查。",
+    description: "查询后台操作记录，便于回溯与排查。",
   },
 }
 

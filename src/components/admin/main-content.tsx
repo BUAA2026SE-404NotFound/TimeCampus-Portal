@@ -54,7 +54,7 @@ export function MainContent({
         <Tabs defaultValue="api" className="rounded-none border bg-card p-4">
           <TabsList className="rounded-none">
             <TabsTrigger value="api" className="rounded-none">
-              API 边界
+              数据说明
             </TabsTrigger>
             <TabsTrigger value="notice" className="rounded-none">
               开发注意

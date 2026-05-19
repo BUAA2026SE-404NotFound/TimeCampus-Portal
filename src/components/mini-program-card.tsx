@@ -38,7 +38,7 @@ export function MiniProgramCard({ className }: MiniProgramCardProps) {
       </CardContent>
       <CardFooter className="border-t bg-muted/30">
         <Button className="w-full rounded-none bg-[#171717] font-mono text-white hover:bg-[#2a2a2a] dark:bg-white dark:text-black dark:hover:bg-white/85">
-          查看详情
+          查看详情（暂未完成）
         </Button>
       </CardFooter>
     </Card>

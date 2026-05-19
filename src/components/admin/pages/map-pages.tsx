@@ -417,7 +417,7 @@ export function MapToolsPage() {
         <CardHeader>
           <CardTitle>逆地理编码</CardTitle>
           <CardDescription>
-            地图工具接口后端封装，SecretKey 不进入前端。
+            腾讯地图工具接口后端封装。
           </CardDescription>
         </CardHeader>
         <CardContent>

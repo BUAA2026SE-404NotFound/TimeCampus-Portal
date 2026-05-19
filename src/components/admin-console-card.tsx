@@ -37,7 +37,7 @@ export function AdminConsoleCard({ onEnter }: AdminConsoleCardProps) {
           className="rounded-none border-[#171717] bg-white font-mono text-black hover:bg-[#f2f2f2] dark:border-white dark:bg-transparent dark:text-white dark:hover:bg-white/10"
           variant="outline"
         >
-          注册
+          注册（暂未开放）
         </Button>
       </CardFooter>
     </Card>

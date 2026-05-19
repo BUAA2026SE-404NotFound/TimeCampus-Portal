@@ -79,7 +79,7 @@ export function LoginScreen({
           <CardHeader>
             <CardTitle className="text-2xl">管理员登录</CardTitle>
             <CardDescription>
-              接入 POST /api/v1/admin/login，登录成功后保存 Bearer token。
+              管理员内部账户登录，如需账户请联系开发团队
             </CardDescription>
           </CardHeader>
           <form onSubmit={handleSubmit}>
@@ -108,7 +108,7 @@ export function LoginScreen({
                     required
                   />
                   <FieldDescription>
-                    本地 token key：TimeCampus-Admin-Token。
+                    忘记密码（请联系开发团队）
                   </FieldDescription>
                 </Field>
               </FieldGroup>

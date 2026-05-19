@@ -53,7 +53,7 @@ export function DashboardPage({ snapshot }: { snapshot: AdminSnapshot }) {
           <CardHeader>
             <CardTitle>访问 / 投稿趋势</CardTitle>
             <CardDescription>
-              趋势图仍使用 mock，等待后端指标接口。
+              后端接口尚未完成开发，暂时使用 mock 假数据
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -87,7 +87,6 @@ export function DashboardPage({ snapshot }: { snapshot: AdminSnapshot }) {
         <Card className="rounded-none shadow-none">
           <CardHeader>
             <CardTitle>审核状态分布</CardTitle>
-            <CardDescription>来自真实 POI、UGC、评论接口。</CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col gap-4">
             {[
@@ -115,6 +114,9 @@ export function DashboardPage({ snapshot }: { snapshot: AdminSnapshot }) {
           <CardHeader>
             <CardTitle>POI 热度排行</CardTitle>
           </CardHeader>
+          <CardDescription>
+            heat = favoriteCount * 12 + commentCount * 8 + mediaCount * 20
+          </CardDescription>
           <CardContent>
             <Table>
               <TableHeader>
