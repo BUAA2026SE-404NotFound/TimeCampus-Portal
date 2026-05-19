@@ -16,12 +16,19 @@ import type { PageId } from "@/components/admin/types"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import type { AdminProfile } from "@/mocks/admin"
 
-export function AdminConsole({ onBack }: { onBack?: () => void }) {
+export function AdminConsole({
+  activePage,
+  onPageChange,
+  onBack,
+}: {
+  activePage: PageId
+  onPageChange: (page: PageId) => void
+  onBack?: () => void
+}) {
   const [profile, setProfile] = useState<AdminProfile | null>(() =>
     getStoredAdminProfile()
   )
   const [snapshot, setSnapshot] = useState<AdminSnapshot | null>(null)
-  const [activePage, setActivePage] = useState<PageId>("dashboard")
 
   const refreshSnapshot = useCallback(async () => {
     if (!getStoredAdminProfile()) {
@@ -82,7 +89,7 @@ export function AdminConsole({ onBack }: { onBack?: () => void }) {
       <div className="flex min-h-svh w-full bg-[#f2f2f2] dark:bg-[#262626]">
         <AdminSidebar
           activePage={activePage}
-          onPageChange={setActivePage}
+          onPageChange={onPageChange}
           profile={profile}
           onLogout={handleLogout}
           pendingUgc={snapshot?.ugc.length ?? 0}

@@ -21,6 +21,7 @@ export type PageId =
 
 export type NavigationItem = {
   id: PageId
+  path: string
   label: string
   description: string
   icon: typeof Gauge
@@ -36,12 +37,25 @@ export const navigationGroups: Array<{
     items: [
       {
         id: "dashboard",
+        path: "/admin/dashboard",
         label: "Dashboard",
         description: "运营首页",
         icon: Gauge,
       },
-      { id: "ops-map", label: "运营地图", description: "校区热度", icon: Map },
-      { id: "logs", label: "审计日志", description: "操作留痕", icon: History },
+      {
+        id: "ops-map",
+        path: "/admin/ops-map",
+        label: "运营地图",
+        description: "校区热度",
+        icon: Map,
+      },
+      {
+        id: "logs",
+        path: "/admin/logs",
+        label: "审计日志",
+        description: "操作留痕",
+        icon: History,
+      },
     ],
   },
   {
@@ -49,24 +63,28 @@ export const navigationGroups: Array<{
     items: [
       {
         id: "pois",
+        path: "/admin/pois",
         label: "POI 管理",
         description: "点位维护",
         icon: Landmark,
       },
       {
         id: "imports",
+        path: "/admin/imports",
         label: "官方内容导入",
         description: "批量入库",
         icon: FileUp,
       },
       {
         id: "ugc",
+        path: "/admin/ugc",
         label: "UGC 审核",
         description: "投稿处理",
         icon: BookOpenCheck,
       },
       {
         id: "comments",
+        path: "/admin/comments",
         label: "评论审核",
         description: "评论处理",
         icon: MessageSquareWarning,
@@ -78,6 +96,7 @@ export const navigationGroups: Array<{
     items: [
       {
         id: "map-tools",
+        path: "/admin/map-tools",
         label: "地图工具",
         description: "地理编码",
         icon: MapPinned,
@@ -122,4 +141,28 @@ export const pageTitles: Record<
     title: "审计日志",
     description: "查询后台关键操作记录，便于回溯与排查。",
   },
+}
+
+export const adminPagePaths = Object.fromEntries(
+  navigationGroups.flatMap((group) =>
+    group.items.map((item) => [item.id, item.path])
+  )
+) as Record<PageId, string>
+
+export function getAdminPagePath(page: PageId) {
+  return adminPagePaths[page]
+}
+
+export function getPageFromPath(pathname: string): PageId {
+  const normalized = pathname.replace(/\/+$/, "") || "/"
+
+  if (normalized === "/admin") {
+    return "dashboard"
+  }
+
+  const match = Object.entries(adminPagePaths).find(
+    ([, path]) => path === normalized
+  )
+
+  return (match?.[0] as PageId | undefined) ?? "dashboard"
 }

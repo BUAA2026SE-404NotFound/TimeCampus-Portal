@@ -74,13 +74,22 @@ export function AdminSidebar({
                   return (
                     <SidebarMenuItem key={item.id}>
                       <SidebarMenuButton
-                        type="button"
+                        asChild
                         isActive={activePage === item.id}
                         tooltip={item.label}
-                        onClick={() => onPageChange(item.id)}
                       >
-                        <item.icon />
-                        {open && <span className="truncate">{item.label}</span>}
+                        <a
+                          href={item.path}
+                          onClick={(event) => {
+                            event.preventDefault()
+                            onPageChange(item.id)
+                          }}
+                        >
+                          <item.icon />
+                          {open && (
+                            <span className="truncate">{item.label}</span>
+                          )}
+                        </a>
                       </SidebarMenuButton>
                       {badge ? (
                         <SidebarMenuBadge>{badge}</SidebarMenuBadge>
