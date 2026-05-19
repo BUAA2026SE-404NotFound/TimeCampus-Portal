@@ -28,7 +28,7 @@ export function ProjectInfoCard({ className }: ProductIdentityCardProps) {
         <div className="grid size-40 place-items-center border bg-muted/30 p-6">
           <img
             className="max-h-full max-w-full object-contain"
-            src="/project-logo.png"
+            src="/project-logo.jpg"
             alt="时光航迹 Logo"
           />
         </div>
