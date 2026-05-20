@@ -5,12 +5,10 @@ import { DashboardPage } from "@/pages/admin/dashboard-page"
 import { ImportsPage } from "@/pages/admin/imports-page"
 import { LogsPage } from "@/pages/admin/logs-page"
 import { MapToolsPage } from "@/pages/admin/map-tools-page"
+import { MediaPage } from "@/pages/admin/media-page"
 import { OpsMapPage } from "@/pages/admin/ops-map-page"
 import { PoiPage } from "@/pages/admin/poi-page"
-import {
-  CommentReviewPage,
-  UgcReviewPage,
-} from "@/pages/admin/review-pages"
+import { CommentReviewPage, UgcReviewPage } from "@/pages/admin/review-pages"
 import type { PageId } from "@/components/admin/types"
 import type { AdminSnapshot } from "@/api/admin"
 
@@ -39,6 +37,7 @@ export function MainContent({
         {activePage === "pois" && (
           <PoiPage pois={snapshot.pois} onChanged={onChanged} />
         )}
+        {activePage === "media" && <MediaPage items={snapshot.media} />}
         {activePage === "imports" && (
           <ImportsPage snapshot={snapshot} onChanged={onChanged} />
         )}

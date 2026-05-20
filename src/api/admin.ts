@@ -3,6 +3,7 @@ import {
   auditLogs,
   commentItems,
   dashboardMetrics,
+  mediaRecords,
   mockAdminProfile,
   officialImports,
   pois,
@@ -11,6 +12,7 @@ import {
   type AdminProfile,
   type AuditLog,
   type CommentItem,
+  type MediaRecord,
   type OfficialImport,
   type Poi,
   type UgcItem,
@@ -48,6 +50,8 @@ type BackendMedia = {
   uploadUserId?: number
   reviewStatus: string
   rejectReason?: string
+  reviewTime?: string
+  reviewerId?: number
   createTime?: string
   updateTime?: string
 }
@@ -202,6 +206,7 @@ export type AdminSnapshot = {
   trends: typeof trendData
   pois: typeof pois
   imports: typeof officialImports
+  media: typeof mediaRecords
   ugc: typeof ugcItems
   comments: typeof commentItems
   logs: typeof auditLogs
@@ -289,6 +294,30 @@ function toUgc(item: BackendMedia, poiList: Poi[]): UgcItem {
   }
 }
 
+function toMediaRecord(item: BackendMedia, poiList: Poi[]): MediaRecord {
+  const poi = poiList.find((candidate) => candidate.id === String(item.poiId))
+  const reviewStatus = normalizeReviewStatus(item.reviewStatus)
+
+  return {
+    id: String(item.id),
+    poiId: String(item.poiId),
+    poiName: poi?.name || `POI ${item.poiId}`,
+    type: item.type?.toUpperCase() || "UNKNOWN",
+    imagePath: item.imagePath,
+    previewUrl: item.previewUrl,
+    year: item.year,
+    description: item.description || item.imagePath || "未填写描述",
+    uploader: item.uploadUserId ? `用户 ${item.uploadUserId}` : undefined,
+    reviewStatus,
+    publishStatus: reviewStatus === "APPROVED" ? "VISIBLE" : "HIDDEN",
+    rejectReason: item.rejectReason,
+    reviewTime: item.reviewTime,
+    reviewer: item.reviewerId ? `管理员 ${item.reviewerId}` : undefined,
+    createdAt: item.createTime || item.updateTime || "-",
+    updatedAt: item.updateTime || item.createTime || "-",
+  }
+}
+
 function toComment(item: BackendComment, poiList: Poi[]): CommentItem {
   const poi = poiList.find(
     (candidate) => candidate.id === String(item.targetId)
@@ -373,12 +402,7 @@ export async function getAdminSnapshot(): Promise<AdminSnapshot> {
     [
       withMockFallback(getAdminMapOverview(), null),
       withMockFallback(apiRequest<BackendPoi[]>("/admin/pois"), null),
-      withMockFallback(
-        apiRequest<BackendMedia[]>("/admin/media", {
-          query: { type: "official" },
-        }),
-        null
-      ),
+      withMockFallback(apiRequest<BackendMedia[]>("/admin/media"), null),
       withMockFallback(
         apiRequest<BackendMedia[]>("/admin/ugc", {
           query: { status: "pending" },
@@ -400,25 +424,29 @@ export async function getAdminSnapshot(): Promise<AdminSnapshot> {
 
   const adaptedPois =
     backendPois?.map((poi) => toPoi(poi, overview ?? undefined)) ?? pois
+  const adaptedMedia =
+    media?.map((item) => toMediaRecord(item, adaptedPois)) ?? mediaRecords
   const adaptedUgc = ugc?.map((item) => toUgc(item, adaptedPois)) ?? ugcItems
   const adaptedComments =
     comments?.map((item) => toComment(item, adaptedPois)) ?? commentItems
   const adaptedLogs = logs?.map(toLog) ?? auditLogs
-  const adaptedImports: OfficialImport[] = media
+  const officialMedia =
+    media?.filter((item) => item.type?.toLowerCase() === "official") ?? null
+  const adaptedImports: OfficialImport[] = officialMedia
     ? [
         {
           id: "official-media",
           fileName: "后端官方影像",
           type: "OFFICIAL",
-          total: media.length,
-          success: media.filter(
+          total: officialMedia.length,
+          success: officialMedia.filter(
             (item) => normalizeReviewStatus(item.reviewStatus) === "APPROVED"
           ).length,
           reviewStatus: "APPROVED",
           publishStatus: "VISIBLE",
           operator: storedProfile?.name || "admin",
           createdAt:
-            media
+            officialMedia
               .map((item) => item.createTime || item.updateTime)
               .filter(Boolean)
               .sort()
@@ -433,7 +461,7 @@ export async function getAdminSnapshot(): Promise<AdminSnapshot> {
       { ...dashboardMetrics[0], value: String(adaptedPois.length) },
       {
         ...dashboardMetrics[1],
-        value: String(media?.length ?? adaptedImports[0]?.total ?? 0),
+        value: String(officialMedia?.length ?? adaptedImports[0]?.total ?? 0),
       },
       { ...dashboardMetrics[2], value: String(adaptedUgc.length) },
       { ...dashboardMetrics[3], value: String(adaptedComments.length) },
@@ -441,6 +469,7 @@ export async function getAdminSnapshot(): Promise<AdminSnapshot> {
     trends: trendData,
     pois: adaptedPois,
     imports: adaptedImports,
+    media: adaptedMedia,
     ugc: adaptedUgc,
     comments: adaptedComments,
     logs: adaptedLogs,

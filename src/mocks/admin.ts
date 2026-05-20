@@ -54,6 +54,25 @@ export type OfficialImport = {
   createdAt: string
 }
 
+export type MediaRecord = {
+  id: string
+  poiId: string
+  poiName: string
+  type: string
+  imagePath?: string
+  previewUrl?: string
+  year: number
+  description: string
+  uploader?: string
+  reviewStatus: ReviewStatus
+  publishStatus: PublishStatus
+  rejectReason?: string
+  reviewTime?: string
+  reviewer?: string
+  createdAt: string
+  updatedAt: string
+}
+
 export type UgcItem = {
   id: string
   poiName: string
@@ -209,6 +228,39 @@ export const officialImports: OfficialImport[] = [
     publishStatus: "VISIBLE",
     operator: "TimeCampus Admin",
     createdAt: "2026-05-13 16:22",
+  },
+]
+
+export const mediaRecords: MediaRecord[] = [
+  {
+    id: "media-001",
+    poiId: "poi-001",
+    poiName: "沙河主楼",
+    type: "OFFICIAL",
+    imagePath: "https://example.com/images/shahe-main-2014.jpg",
+    previewUrl: "https://example.com/images/shahe-main-2014-preview.jpg",
+    year: 2014,
+    description: "沙河主楼启用初期的官方影像资料。",
+    reviewStatus: "APPROVED",
+    publishStatus: "VISIBLE",
+    reviewer: "TimeCampus Admin",
+    reviewTime: "2026-05-15 09:10",
+    createdAt: "2026-05-15 09:10",
+    updatedAt: "2026-05-15 09:10",
+  },
+  {
+    id: "media-002",
+    poiId: "poi-003",
+    poiName: "老图书馆旧址",
+    type: "UGC",
+    imagePath: "https://example.com/images/old-library-1988.jpg",
+    year: 1988,
+    description: "疑似学院路老图书馆外立面，需要核验年代。",
+    uploader: "用户 2031",
+    reviewStatus: "PENDING",
+    publishStatus: "HIDDEN",
+    createdAt: "2026-05-14 22:03",
+    updatedAt: "2026-05-14 22:03",
   },
 ]
 

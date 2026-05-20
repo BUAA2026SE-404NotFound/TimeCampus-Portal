@@ -3,6 +3,7 @@ import {
   FileUp,
   Gauge,
   History,
+  Images,
   Landmark,
   Map,
   MapPinned,
@@ -12,6 +13,7 @@ import {
 export type PageId =
   | "dashboard"
   | "pois"
+  | "media"
   | "imports"
   | "ugc"
   | "comments"
@@ -69,6 +71,13 @@ export const navigationGroups: Array<{
         icon: Landmark,
       },
       {
+        id: "media",
+        path: "/admin/media",
+        label: "媒体记录",
+        description: "全部影像",
+        icon: Images,
+      },
+      {
         id: "imports",
         path: "/admin/imports",
         label: "官方内容导入",
@@ -117,6 +126,10 @@ export const pageTitles: Record<
     title: "POI 管理",
     description: "维护校园兴趣点、坐标、状态和内容覆盖。",
   },
+  media: {
+    title: "媒体记录",
+    description: "查看全部官方与 UGC 影像记录。",
+  },
   imports: {
     title: "平台内容批量导入",
     description: "手动导入历史影像与内容。",
@@ -127,7 +140,8 @@ export const pageTitles: Record<
   },
   comments: {
     title: "评论审核（已废弃）",
-    description: "审核用户评论，保留审核状态与操作痕迹。（因为微信小程序服务策略，现已废弃评论功能）",
+    description:
+      "审核用户评论，保留审核状态与操作痕迹。（因为微信小程序服务策略，现已废弃评论功能）",
   },
   "map-tools": {
     title: "地图工具",
