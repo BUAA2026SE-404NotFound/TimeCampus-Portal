@@ -5,7 +5,10 @@ import type { AdminMapPoi } from "@/api/admin"
 import { isValidPoi } from "@/features/admin/operation-map/map-poi"
 
 type TMapNamespace = {
-  Map: new (container: HTMLElement, options: Record<string, unknown>) => TencentMap
+  Map: new (
+    container: HTMLElement,
+    options: Record<string, unknown>
+  ) => TencentMap
   LatLng: new (lat: number, lng: number) => unknown
   MultiMarker: new (options: Record<string, unknown>) => TencentMarkerLayer
   MarkerStyle: new (options: Record<string, unknown>) => unknown
@@ -40,6 +43,11 @@ declare global {
 }
 
 const BUAA_CENTER = { lat: 39.981292, lng: 116.348026 }
+const ACTIVE_MARKER_FILL = "#003a70"
+const ACTIVE_MARKER_STROKE = "#002b5c"
+const INACTIVE_MARKER_FILL = "#7b8794"
+const INACTIVE_MARKER_STROKE = "#5d6672"
+const MARKER_LABEL_BACKGROUND = "#f7fbff"
 
 function loadTencentMap(key: string) {
   if (window.TMap) {
@@ -71,14 +79,14 @@ function loadTencentMap(key: string) {
 
 function markerSvg(poi: AdminMapPoi) {
   const active = poi.status === 1
-  const fill = active ? "#171717" : "#7b8794"
-  const stroke = active ? "#000000" : "#5d6672"
+  const fill = active ? ACTIVE_MARKER_FILL : INACTIVE_MARKER_FILL
+  const stroke = active ? ACTIVE_MARKER_STROKE : INACTIVE_MARKER_STROKE
   const count = String(poi.favoriteCount || 0)
   const safeCount = count.length > 2 ? "99+" : count
   const svg = `
     <svg xmlns="http://www.w3.org/2000/svg" width="38" height="46" viewBox="0 0 38 46">
       <path fill="${fill}" stroke="${stroke}" stroke-width="2" d="M19 44C14.2 36.6 5 28.2 5 18.5 5 10.5 11.3 4 19 4s14 6.5 14 14.5C33 28.2 23.8 36.6 19 44Z"/>
-      <circle cx="19" cy="18.5" r="10.5" fill="#fff"/>
+      <circle cx="19" cy="18.5" r="10.5" fill="${MARKER_LABEL_BACKGROUND}"/>
       <text x="19" y="23" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="700" fill="${fill}">${safeCount}</text>
     </svg>`
 
@@ -161,7 +169,7 @@ export function TencentOperationMap({
           anchor: new TMap.Point(19, 42),
           src: markerSvg(poi),
         }),
-      ]),
+      ])
     )
     const geometries = validPois.map((poi) => ({
       id: String(poi.id),
@@ -176,7 +184,9 @@ export function TencentOperationMap({
       geometries,
     })
     markerLayer.on("click", (event) => {
-      const poiId = Number(event.geometry?.properties?.poiId ?? event.geometry?.id)
+      const poiId = Number(
+        event.geometry?.properties?.poiId ?? event.geometry?.id
+      )
       const poi = validPois.find((item) => Number(item.id) === poiId)
       if (poi) {
         onSelectPoi(poi)

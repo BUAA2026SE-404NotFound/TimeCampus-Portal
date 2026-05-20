@@ -71,7 +71,7 @@ export function ContactUsCard() {
         <CardFooter className="border-t bg-muted/30">
           <Button
             type="button"
-            className="w-full rounded-none bg-[#171717] font-mono text-white hover:bg-[#2a2a2a] dark:bg-white dark:text-black dark:hover:bg-white/85"
+            className="w-full rounded-none font-mono"
             onClick={() => setFormOpen(true)}
           >
             提交反馈
@@ -101,7 +101,7 @@ export function ContactUsCard() {
                     onChange={(event) =>
                       updateField("name", event.target.value)
                     }
-                    className="h-10 rounded-none border px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    className="h-10 rounded-none border bg-background px-3 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     placeholder="Your name"
                   />
                 </div>
@@ -119,7 +119,7 @@ export function ContactUsCard() {
                     onChange={(event) =>
                       updateField("email", event.target.value)
                     }
-                    className="h-10 rounded-none border px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    className="h-10 rounded-none border bg-background px-3 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     placeholder="your-email@example.com"
                   />
                 </div>
@@ -132,7 +132,7 @@ export function ContactUsCard() {
                   id="topic"
                   value={form.topic}
                   onChange={(event) => updateField("topic", event.target.value)}
-                  className="h-10 rounded-none border bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  className="h-10 rounded-none border bg-background px-3 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
                   <option>内容分享</option>
                   <option>审核相关</option>
@@ -152,7 +152,7 @@ export function ContactUsCard() {
                   onChange={(event) =>
                     updateField("message", event.target.value)
                   }
-                  className="min-h-32 resize-y rounded-none border px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  className="min-h-32 resize-y rounded-none border bg-background px-3 py-2 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   placeholder="请描述您的问题"
                 />
               </div>
@@ -166,10 +166,7 @@ export function ContactUsCard() {
               >
                 取消
               </Button>
-              <Button
-                type="submit"
-                className="rounded-none bg-[#171717] font-mono text-white hover:bg-[#2a2a2a] dark:bg-white dark:text-black dark:hover:bg-white/85"
-              >
+              <Button type="submit" className="rounded-none font-mono">
                 提交
               </Button>
             </DialogFooter>

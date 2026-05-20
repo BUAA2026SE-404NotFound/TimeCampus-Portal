@@ -18,13 +18,13 @@ const navItems = [
 
 export function SiteHeader() {
   return (
-    <header className="bg-[#171717] font-mono text-white dark:bg-[#1f1f1f]">
+    <header className="bg-sidebar font-mono text-sidebar-foreground">
       <div className="mx-auto flex h-16 w-full max-w-6xl items-center gap-4 px-4 sm:px-6">
         <a className="shrink-0" href="#project-info">
-          <p className="text-[11px] font-semibold leading-none text-white/60 uppercase">
+          <p className="text-[11px] leading-none font-semibold text-sidebar-foreground/65 uppercase">
             TimeCampus
           </p>
-          <span className="text-xl font-semibold leading-tight">时光航迹</span>
+          <span className="text-xl leading-tight font-semibold">时光航迹</span>
         </a>
         <nav
           className="hidden items-center gap-5 text-sm md:flex"
@@ -33,7 +33,7 @@ export function SiteHeader() {
           {navItems.map((item) => (
             <a
               key={item.href}
-              className="text-white/70 hover:text-white"
+              className="text-sidebar-foreground/75 hover:text-sidebar-foreground"
               href={item.href}
             >
               {item.label}
@@ -45,7 +45,7 @@ export function SiteHeader() {
             <SheetTrigger asChild>
               <Button
                 variant="ghost"
-                className="rounded-none px-2 font-mono text-white hover:bg-white/10 hover:text-white md:hidden"
+                className="rounded-none px-2 font-mono text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground md:hidden"
               >
                 <span className="mr-2 grid gap-1" aria-hidden="true">
                   <span className="block h-0.5 w-5 bg-current" />

@@ -17,7 +17,10 @@ export function MiniProgramCard({ className }: MiniProgramCardProps) {
   return (
     <Card
       id="mini-program"
-      className={mergeClassName("h-full scroll-mt-6 rounded-none bg-card font-mono shadow-none", className)}
+      className={mergeClassName(
+        "h-full scroll-mt-6 rounded-none bg-card font-mono shadow-none",
+        className
+      )}
     >
       <CardHeader>
         <p className="text-sm font-semibold text-muted-foreground uppercase">
@@ -27,7 +30,9 @@ export function MiniProgramCard({ className }: MiniProgramCardProps) {
       </CardHeader>
       <CardContent className="grid flex-1 gap-4 sm:grid-cols-[1fr_160px]">
         <div className="space-y-3 leading-7 text-muted-foreground">
-          <p>小程序基于腾讯地图面向用户展示校园地图与兴趣点、校园历史影像、冷知识等内容</p>
+          <p>
+            小程序基于腾讯地图面向用户展示校园地图与兴趣点、校园历史影像、冷知识等内容
+          </p>
         </div>
         <div className="grid size-40 place-items-center border bg-muted/30 p-6">
           <img
@@ -38,7 +43,7 @@ export function MiniProgramCard({ className }: MiniProgramCardProps) {
         </div>
       </CardContent>
       <CardFooter className="border-t bg-muted/30">
-        <Button className="w-full rounded-none bg-[#171717] font-mono text-white hover:bg-[#2a2a2a] dark:bg-white dark:text-black dark:hover:bg-white/85">
+        <Button className="w-full rounded-none font-mono">
           查看详情（暂未完成）
         </Button>
       </CardFooter>

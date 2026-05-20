@@ -27,16 +27,10 @@ export function AdminConsoleCard({ onEnter }: AdminConsoleCardProps) {
         <p>管理员可登录后台处理反馈、进行内容审核与内容管理</p>
       </CardContent>
       <CardFooter className="grid grid-cols-2 gap-2 border-t bg-muted/30">
-        <Button
-          className="rounded-none bg-[#171717] font-mono text-white hover:bg-[#2a2a2a] dark:bg-white dark:text-black dark:hover:bg-white/85"
-          onClick={onEnter}
-        >
+        <Button className="rounded-none font-mono" onClick={onEnter}>
           登录
         </Button>
-        <Button
-          className="rounded-none border-[#171717] bg-white font-mono text-black hover:bg-[#f2f2f2] dark:border-white dark:bg-transparent dark:text-white dark:hover:bg-white/10"
-          variant="outline"
-        >
+        <Button className="rounded-none font-mono" variant="outline">
           注册（暂未开放）
         </Button>
       </CardFooter>

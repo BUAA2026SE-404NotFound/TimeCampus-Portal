@@ -68,10 +68,10 @@ export function EmptyTableRow({
 
 export function AdminFooter() {
   return (
-    <footer className="border-t bg-[#171717] px-4 py-4 font-mono text-sm text-white sm:px-6 dark:bg-[#1f1f1f]">
+    <footer className="border-t border-sidebar-border bg-sidebar px-4 py-4 font-mono text-sm text-sidebar-foreground sm:px-6">
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <p>© 2026 北航敏捷开发软件工程</p>
-        <div className="flex flex-wrap gap-x-4 gap-y-2 text-white/70">
+        <div className="flex flex-wrap gap-x-4 gap-y-2 text-sidebar-foreground/75">
           <a href="mailto:kurna2026@outlook.com" className="underline">
             开发团队联系
           </a>

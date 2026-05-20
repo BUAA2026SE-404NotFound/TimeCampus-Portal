@@ -15,14 +15,6 @@ import {
 } from "@/components/ui/card"
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
 import { Textarea } from "@/components/ui/textarea"
 import type { AdminSnapshot } from "@/api/admin"
 
@@ -139,44 +131,58 @@ export function ImportsPage({
         <CardHeader>
           <CardTitle>导入记录</CardTitle>
         </CardHeader>
-        <CardContent className="p-0">
-          <Table className="table-fixed">
-            <TableHeader>
-              <TableRow>
-                <TableHead>来源 / 类型</TableHead>
-                <TableHead className="w-28">成功 / 总数</TableHead>
-                <TableHead className="w-24">审核</TableHead>
-                <TableHead className="w-24">发布</TableHead>
-                <TableHead className="w-36">操作人</TableHead>
-                <TableHead className="w-44">导入时间</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {snapshot.imports.map((item) => (
-                <TableRow key={item.id}>
-                  <TableCell className="whitespace-normal">
-                    <p className="line-clamp-2 font-medium">{item.fileName}</p>
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      {item.type}
-                    </p>
-                  </TableCell>
-                  <TableCell>
-                    {item.success} / {item.total}
-                  </TableCell>
-                  <TableCell>
-                    <StatusBadge status={item.reviewStatus} />
-                  </TableCell>
-                  <TableCell>
-                    <StatusBadge status={item.publishStatus} />
-                  </TableCell>
-                  <TableCell className="whitespace-normal">
-                    <span className="line-clamp-2">{item.operator}</span>
-                  </TableCell>
-                  <TableCell>{item.createdAt}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+        <CardContent className="grid gap-3">
+          {snapshot.imports.length ? (
+            snapshot.imports.map((item) => (
+              <article key={item.id} className="border bg-background p-4">
+                <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
+                  <div className="min-w-0">
+                    <h3 className="line-clamp-2 font-semibold">
+                      {item.fileName}
+                    </h3>
+                    <p className="text-xs text-muted-foreground">{item.type}</p>
+                  </div>
+                  <time className="shrink-0 text-sm text-muted-foreground">
+                    {item.createdAt}
+                  </time>
+                </div>
+                <dl className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+                  <div className="grid gap-1">
+                    <dt className="text-xs text-muted-foreground">
+                      成功 / 总数
+                    </dt>
+                    <dd className="font-semibold">
+                      {item.success} / {item.total}
+                    </dd>
+                  </div>
+                  <div className="grid gap-1">
+                    <dt className="text-xs text-muted-foreground">审核状态</dt>
+                    <dd>
+                      <StatusBadge status={item.reviewStatus} />
+                    </dd>
+                  </div>
+                  <div className="grid gap-1">
+                    <dt className="text-xs text-muted-foreground">发布状态</dt>
+                    <dd>
+                      <StatusBadge status={item.publishStatus} />
+                    </dd>
+                  </div>
+                  <div className="grid gap-1">
+                    <dt className="text-xs text-muted-foreground">操作人</dt>
+                    <dd className="line-clamp-2">{item.operator}</dd>
+                  </div>
+                  <div className="grid gap-1">
+                    <dt className="text-xs text-muted-foreground">导入时间</dt>
+                    <dd className="break-all">{item.createdAt}</dd>
+                  </div>
+                </dl>
+              </article>
+            ))
+          ) : (
+            <div className="border bg-background p-8 text-center text-muted-foreground">
+              暂无导入记录
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

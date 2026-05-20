@@ -86,7 +86,7 @@ export function AdminConsole({
 
   return (
     <SidebarProvider>
-      <div className="flex min-h-svh w-full bg-[#f2f2f2] dark:bg-[#262626]">
+      <div className="flex min-h-svh w-full bg-background">
         <AdminSidebar
           activePage={activePage}
           onPageChange={onPageChange}

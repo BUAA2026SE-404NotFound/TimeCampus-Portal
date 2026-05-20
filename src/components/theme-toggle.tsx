@@ -37,7 +37,7 @@ function ThemeIcon() {
 export function ThemeToggle() {
   const { theme, setTheme } = useTheme()
   const [resolvedTheme, setResolvedTheme] = React.useState<"dark" | "light">(
-    () => getResolvedTheme(),
+    () => getResolvedTheme()
   )
 
   React.useEffect(() => {
@@ -64,10 +64,7 @@ export function ThemeToggle() {
     <button
       type="button"
       className={mergeClassName(
-        "grid size-9 shrink-0 place-items-center border font-mono",
-        isDark
-          ? "border-white bg-white text-black hover:bg-white/85"
-          : "border-white/30 bg-[#171717] text-white hover:bg-[#2a2a2a]",
+        "grid size-9 shrink-0 place-items-center border border-sidebar-border bg-sidebar-accent font-mono text-sidebar-accent-foreground hover:bg-sidebar-accent/85"
       )}
       title={isDark ? "切换到浅色主题" : "切换到深色主题"}
       aria-label={isDark ? "切换到浅色主题" : "切换到深色主题"}

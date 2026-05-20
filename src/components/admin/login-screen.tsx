@@ -52,11 +52,11 @@ export function LoginScreen({
   }
 
   return (
-    <div className="flex min-h-svh flex-col bg-[#f2f2f2] font-mono dark:bg-[#262626]">
-      <header className="bg-[#171717] text-white dark:bg-[#1f1f1f]">
+    <div className="flex min-h-svh flex-col bg-background font-mono">
+      <header className="bg-sidebar text-sidebar-foreground">
         <div className="mx-auto flex h-16 w-full max-w-6xl items-center gap-4 px-4 sm:px-6">
           <div className="min-w-0">
-            <p className="text-[11px] font-semibold text-white/60 uppercase">
+            <p className="text-[11px] font-semibold text-sidebar-foreground/65 uppercase">
               TimeCampus Admin
             </p>
             <p className="truncate text-xl font-semibold">时光航迹管理端</p>
@@ -66,7 +66,7 @@ export function LoginScreen({
               <Button
                 type="button"
                 variant="ghost"
-                className="rounded-none font-mono text-white hover:bg-white/10 hover:text-white"
+                className="rounded-none font-mono text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
                 onClick={onBack}
               >
                 返回门户

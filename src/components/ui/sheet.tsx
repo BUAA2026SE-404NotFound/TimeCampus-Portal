@@ -4,7 +4,9 @@ import { Dialog as DialogPrimitive } from "radix-ui"
 
 import { mergeClassName } from "@/lib/utils"
 
-function Sheet({ ...props }: React.ComponentProps<typeof DialogPrimitive.Root>) {
+function Sheet({
+  ...props
+}: React.ComponentProps<typeof DialogPrimitive.Root>) {
   return <DialogPrimitive.Root data-slot="sheet" {...props} />
 }
 
@@ -34,8 +36,8 @@ function SheetOverlay({
     <DialogPrimitive.Overlay
       data-slot="sheet-overlay"
       className={mergeClassName(
-        "fixed inset-0 z-50 bg-black/50 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:animate-in data-[state=open]:fade-in-0",
-        className,
+        "fixed inset-0 z-50 bg-primary/45 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:animate-in data-[state=open]:fade-in-0 dark:bg-background/70",
+        className
       )}
       {...props}
     />
@@ -61,7 +63,7 @@ function SheetContent({
             "left-0 data-[state=closed]:slide-out-to-left data-[state=open]:slide-in-from-left",
           side === "right" &&
             "right-0 data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right",
-          className,
+          className
         )}
         {...props}
       >

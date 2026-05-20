@@ -43,7 +43,10 @@ export function AdminSidebar({
     <Sidebar collapsible="icon" className="font-mono">
       <SidebarHeader>
         <div
-          className={mergeClassName("flex items-center gap-3", !open && "justify-center")}
+          className={mergeClassName(
+            "flex items-center gap-3",
+            !open && "justify-center"
+          )}
         >
           <AdminLogo />
           {open && (
@@ -104,7 +107,10 @@ export function AdminSidebar({
       </SidebarContent>
       <SidebarFooter>
         <div
-          className={mergeClassName("flex items-center gap-3", !open && "justify-center")}
+          className={mergeClassName(
+            "flex items-center gap-3",
+            !open && "justify-center"
+          )}
         >
           <Avatar className="size-9 rounded-none">
             <AvatarFallback className="rounded-none">
@@ -123,7 +129,7 @@ export function AdminSidebar({
         {open && (
           <Button
             variant="outline"
-            className="w-full rounded-none font-mono"
+            className="w-full rounded-none border-sidebar-border bg-transparent font-mono text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
             onClick={onLogout}
           >
             <LogOut data-icon="inline-start" />

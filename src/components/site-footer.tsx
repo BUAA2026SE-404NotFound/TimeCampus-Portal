@@ -17,7 +17,10 @@ function GithubLogo() {
 
 function MiitLogo() {
   return (
-    <span className="grid size-4 shrink-0 place-items-center" aria-hidden="true">
+    <span
+      className="grid size-4 shrink-0 place-items-center"
+      aria-hidden="true"
+    >
       <img className="size-full object-contain" src={ghsLogo} alt="" />
     </span>
   )
@@ -25,9 +28,9 @@ function MiitLogo() {
 
 export function SiteFooter() {
   return (
-    <footer className="bg-[#171717] font-mono text-sm text-white dark:bg-[#1f1f1f]">
+    <footer className="bg-sidebar font-mono text-sm text-sidebar-foreground">
       <div className="mx-auto grid w-full max-w-6xl gap-4 px-4 py-6 sm:px-6">
-        <div className="flex flex-wrap gap-x-5 gap-y-2 text-white/70">
+        <div className="flex flex-wrap gap-x-5 gap-y-2 text-sidebar-foreground/75">
           {footerLinks.map((item) => (
             <span key={item}>{item}</span>
           ))}
