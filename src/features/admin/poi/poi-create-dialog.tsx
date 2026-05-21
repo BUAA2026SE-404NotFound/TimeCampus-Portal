@@ -46,7 +46,9 @@ export function PoiCreateDialog({
       <DialogContent className="rounded-none font-mono sm:max-w-xl">
         <DialogHeader>
           <DialogTitle>新增 POI</DialogTitle>
-          <DialogDescription>提交到 POST /api/v1/admin/pois。</DialogDescription>
+          <DialogDescription>
+            提交到 POST /api/v1/admin/pois。
+          </DialogDescription>
         </DialogHeader>
         <FieldGroup>
           <Field>
@@ -56,6 +58,17 @@ export function PoiCreateDialog({
               value={form.name}
               onChange={(event) =>
                 onFormChange({ ...form, name: event.target.value })
+              }
+              className="rounded-none"
+            />
+          </Field>
+          <Field>
+            <FieldLabel htmlFor="poi-description">简介</FieldLabel>
+            <Input
+              id="poi-description"
+              value={form.description}
+              onChange={(event) =>
+                onFormChange({ ...form, description: event.target.value })
               }
               className="rounded-none"
             />
@@ -84,18 +97,19 @@ export function PoiCreateDialog({
               />
             </Field>
           </div>
-          <Field>
-            <FieldLabel htmlFor="poi-description">简介</FieldLabel>
-            <Input
-              id="poi-description"
-              value={form.description}
-              onChange={(event) =>
-                onFormChange({ ...form, description: event.target.value })
-              }
-              className="rounded-none"
-            />
-          </Field>
         </FieldGroup>
+        <DialogDescription>
+          请使用{" "}
+          <a
+            href={"https://lbs.qq.com/webDemoCenter/glAPI/glMap/mapPosition"}
+            target={"_blank"}
+            rel="noreferrer"
+            className="underline"
+          >
+            腾讯位置服务坐标拾取工具
+          </a>{" "}
+          获取坐标信息。
+        </DialogDescription>
         <DialogFooter>
           <Button
             className="rounded-none font-mono"

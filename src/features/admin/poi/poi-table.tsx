@@ -39,9 +39,9 @@ export function PoiTable({
 }) {
   return (
     <Card className="rounded-none shadow-none">
-      <CardContent className="p-0">
+      <CardContent className="max-h-[calc(100svh-24rem)] overflow-y-auto p-0">
         <Table className="table-fixed">
-          <TableHeader>
+          <TableHeader className="sticky top-0 z-10 bg-card">
             <TableRow>
               <TableHead className="w-36">POI ID</TableHead>
               <TableHead className="w-48">名称</TableHead>

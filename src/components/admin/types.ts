@@ -3,7 +3,6 @@ import {
   FileUp,
   Gauge,
   History,
-  Images,
   Landmark,
   Map,
   MapPinned,
@@ -13,7 +12,6 @@ import {
 export type PageId =
   | "dashboard"
   | "pois"
-  | "media"
   | "imports"
   | "ugc"
   | "comments"
@@ -71,17 +69,10 @@ export const navigationGroups: Array<{
         icon: Landmark,
       },
       {
-        id: "media",
-        path: "/admin/media",
-        label: "媒体记录",
-        description: "全部影像",
-        icon: Images,
-      },
-      {
         id: "imports",
         path: "/admin/imports",
-        label: "官方内容导入",
-        description: "批量入库",
+        label: "官方内容上传",
+        description: "上传入库",
         icon: FileUp,
       },
       {
@@ -126,13 +117,9 @@ export const pageTitles: Record<
     title: "POI 管理",
     description: "维护校园兴趣点、坐标、状态和内容覆盖。",
   },
-  media: {
-    title: "媒体记录",
-    description: "查看全部官方与 UGC 影像记录。",
-  },
   imports: {
-    title: "平台内容批量导入",
-    description: "手动导入历史影像与内容。",
+    title: "官方内容上传",
+    description: "上传本地图片或导入已有 URL，并查看官方上传记录。",
   },
   ugc: {
     title: "UGC 审核",

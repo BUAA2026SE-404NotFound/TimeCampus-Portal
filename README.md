@@ -1,6 +1,6 @@
 # TimeCampus Portal
 
-TimeCampus 管理端与门户前端，基于 React 19、TypeScript、Vite、Tailwind CSS 4 和 shadcn/ui。
+TimeCampus 主页前端，基于 React 19、TypeScript、Vite、Tailwind CSS 4 和 shadcn/ui。
 
 ## 本地开发
 
@@ -16,10 +16,10 @@ pnpm build
 
 ## 路由
 
-- `/`：门户首页
+- `/`：首页
 - `/admin/dashboard`：运营首页
 - `/admin/pois`：POI 管理
-- `/admin/imports`：官方内容导入
+- `/admin/imports`：官方内容上传
 - `/admin/ugc`：UGC 审核
 - `/admin/comments`：评论审核
 - `/admin/map-tools`：地图工具

@@ -3,6 +3,7 @@ import { Search } from "lucide-react"
 import { toast } from "sonner"
 
 import { createPoi, deletePoi, updatePoi } from "@/api/admin"
+import { PaginationControls } from "@/components/admin/pagination-controls"
 import {
   Card,
   CardAction,
@@ -40,6 +41,8 @@ export function PoiPage({
   const [creating, setCreating] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [updatingId, setUpdatingId] = useState<string | null>(null)
+  const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
   const [form, setForm] = useState<PoiFormState>({
     name: "",
     latitude: "",
@@ -55,6 +58,12 @@ export function PoiPage({
 
     return matchesKeyword && matchesStatus
   })
+  const totalPages = Math.max(1, Math.ceil(filteredPois.length / pageSize))
+  const currentPage = Math.min(page, totalPages)
+  const pagedPois = filteredPois.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize
+  )
 
   async function handleCreate() {
     if (creating) return
@@ -153,14 +162,20 @@ export function PoiPage({
             <Search className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-muted-foreground" />
             <Input
               value={keyword}
-              onChange={(event) => setKeyword(event.target.value)}
+              onChange={(event) => {
+                setKeyword(event.target.value)
+                setPage(1)
+              }}
               className="rounded-none pl-9"
               placeholder="搜索 POI 或简介"
             />
           </div>
           <Select
             value={status}
-            onValueChange={(value) => setStatus(value as typeof status)}
+            onValueChange={(value) => {
+              setStatus(value as typeof status)
+              setPage(1)
+            }}
           >
             <SelectTrigger className="w-full rounded-none">
               <SelectValue placeholder="状态" />
@@ -177,11 +192,21 @@ export function PoiPage({
       </Card>
 
       <PoiTable
-        pois={filteredPois}
+        pois={pagedPois}
         onDelete={handleDelete}
         onToggleStatus={handleToggleStatus}
         deletingId={deletingId}
         updatingId={updatingId}
+      />
+      <PaginationControls
+        page={currentPage}
+        pageSize={pageSize}
+        total={filteredPois.length}
+        onPageChange={setPage}
+        onPageSizeChange={(value) => {
+          setPageSize(value)
+          setPage(1)
+        }}
       />
     </div>
   )

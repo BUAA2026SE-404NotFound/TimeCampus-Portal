@@ -69,7 +69,7 @@ export function LoginScreen({
                 className="rounded-none font-mono text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
                 onClick={onBack}
               >
-                返回门户
+                返回主页
               </Button>
             )}
             <ThemeToggle />

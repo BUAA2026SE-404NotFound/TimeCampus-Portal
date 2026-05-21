@@ -237,6 +237,13 @@ export type OfficialImportPayload = {
   }>
 }
 
+export type OfficialUploadPayload = {
+  file: File
+  poiId: number
+  year: number
+  description?: string
+}
+
 function normalizeReviewStatus(status?: string) {
   switch (status?.toLowerCase()) {
     case "approved":
@@ -581,5 +588,20 @@ export async function importOfficialContent(payload: OfficialImportPayload) {
   }>("/admin/contents/batch-import", {
     method: "POST",
     body: payload,
+  })
+}
+
+export async function uploadOfficialContent(payload: OfficialUploadPayload) {
+  const body = new FormData()
+  body.set("file", payload.file)
+
+  return apiRequest<BackendMedia>("/admin/media/upload", {
+    method: "POST",
+    query: {
+      poiId: payload.poiId,
+      year: payload.year,
+      description: payload.description,
+    },
+    body,
   })
 }

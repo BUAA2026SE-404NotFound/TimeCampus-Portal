@@ -29,7 +29,7 @@ export function AdminHeader({
   const page = pageTitles[activePage]
 
   return (
-    <header className="sticky top-0 border-b bg-background/95 px-4 py-3 font-mono backdrop-blur sm:px-6">
+    <header className="border-b bg-background px-4 py-3 font-mono sm:px-6">
       <div className="flex items-center gap-3">
         <SidebarTrigger />
         <div className="min-w-0">
@@ -46,7 +46,7 @@ export function AdminHeader({
               className="hidden rounded-none font-mono sm:inline-flex"
               onClick={onBack}
             >
-              返回门户
+              返回主页
             </Button>
           )}
           <div className="hidden items-center gap-2 text-sm text-muted-foreground lg:flex">

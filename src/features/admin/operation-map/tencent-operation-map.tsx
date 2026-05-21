@@ -216,7 +216,7 @@ export function TencentOperationMap({
 
   if (!mapKey) {
     return (
-      <div className="grid h-[560px] place-items-center border bg-muted/30 text-center">
+      <div className="grid h-140 place-items-center border bg-muted/30 text-center">
         <div className="flex flex-col gap-2">
           <b>腾讯地图 Key 未配置</b>
           <span className="text-sm text-muted-foreground">
@@ -229,17 +229,17 @@ export function TencentOperationMap({
 
   return (
     <div className="relative overflow-hidden border">
-      <div ref={containerRef} className="h-[560px] w-full bg-muted/30" />
+      <div ref={containerRef} className="h-140 w-full bg-muted/30" />
       <div className="absolute bottom-3 left-3 flex flex-wrap gap-3 border bg-background/95 px-3 py-2 text-xs shadow-sm">
-        <span className="inline-flex items-center gap-1.5">
-          <i className="size-2.5 rounded-full bg-primary" />
-          上架 POI
-        </span>
-        <span className="inline-flex items-center gap-1.5">
-          <i className="size-2.5 rounded-full bg-muted-foreground" />
-          下架 POI
-        </span>
-        <span className="text-muted-foreground">Marker 数字表示收藏数</span>
+        {/*<span className="inline-flex items-center gap-1.5">*/}
+        {/*  <i className="size-2.5 rounded-full bg-primary" />*/}
+        {/*  上架 POI*/}
+        {/*</span>*/}
+        {/*<span className="inline-flex items-center gap-1.5">*/}
+        {/*  <i className="size-2.5 rounded-full bg-muted-foreground" />*/}
+        {/*  下架 POI*/}
+        {/*</span>*/}
+        {/*<span className="text-muted-foreground">Marker 数字表示收藏数</span>*/}
       </div>
     </div>
   )

@@ -1,5 +1,7 @@
 import { useState } from "react"
+import { Search } from "lucide-react"
 
+import { PaginationControls } from "@/components/admin/pagination-controls"
 import { Badge } from "@/components/ui/badge"
 import {
   Card,
@@ -9,6 +11,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
 import {
   Select,
   SelectContent,
@@ -29,10 +32,23 @@ import type { AdminSnapshot } from "@/api/admin"
 
 export function LogsPage({ snapshot }: { snapshot: AdminSnapshot }) {
   const [type, setType] = useState("ALL")
+  const [keyword, setKeyword] = useState("")
+  const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
   const filteredLogs =
-    type === "ALL"
-      ? snapshot.logs
-      : snapshot.logs.filter((log) => log.type === type)
+    type === "ALL" ? snapshot.logs : snapshot.logs.filter((log) => log.type === type)
+  const searchedLogs = filteredLogs.filter((log) =>
+    [log.id, log.type, log.action, log.target, log.operator, log.createdAt]
+      .join(" ")
+      .toLowerCase()
+      .includes(keyword.trim().toLowerCase())
+  )
+  const totalPages = Math.max(1, Math.ceil(searchedLogs.length / pageSize))
+  const currentPage = Math.min(page, totalPages)
+  const pagedLogs = searchedLogs.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize
+  )
 
   return (
     <Card className="rounded-none shadow-none">
@@ -41,8 +57,26 @@ export function LogsPage({ snapshot }: { snapshot: AdminSnapshot }) {
         <CardDescription>
           接入 GET /api/v1/admin/logs?limit=20。
         </CardDescription>
-        <CardAction>
-          <Select value={type} onValueChange={setType}>
+        <CardAction className="flex flex-col gap-2 sm:flex-row">
+          <div className="relative">
+            <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              value={keyword}
+              onChange={(event) => {
+                setKeyword(event.target.value)
+                setPage(1)
+              }}
+              className="w-full rounded-none pl-9 sm:w-72"
+              placeholder="搜索操作、对象、操作人"
+            />
+          </div>
+          <Select
+            value={type}
+            onValueChange={(value) => {
+              setType(value)
+              setPage(1)
+            }}
+          >
             <SelectTrigger className="w-44 rounded-none">
               <SelectValue placeholder="日志类型" />
             </SelectTrigger>
@@ -61,9 +95,10 @@ export function LogsPage({ snapshot }: { snapshot: AdminSnapshot }) {
           </Select>
         </CardAction>
       </CardHeader>
-      <CardContent className="p-0">
+      <CardContent className="grid gap-3 p-0">
+        <div className="max-h-[calc(100svh-22rem)] overflow-y-auto">
         <Table className="table-fixed">
-          <TableHeader>
+          <TableHeader className="sticky top-0 z-10 bg-card">
             <TableRow>
               <TableHead className="w-40">类型</TableHead>
               <TableHead>操作</TableHead>
@@ -73,7 +108,7 @@ export function LogsPage({ snapshot }: { snapshot: AdminSnapshot }) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredLogs.map((log) => (
+            {pagedLogs.map((log) => (
               <TableRow key={log.id}>
                 <TableCell>
                   <Badge variant="outline" className="rounded-none">
@@ -90,6 +125,19 @@ export function LogsPage({ snapshot }: { snapshot: AdminSnapshot }) {
             ))}
           </TableBody>
         </Table>
+        </div>
+        <div className="px-6 pb-4">
+          <PaginationControls
+            page={currentPage}
+            pageSize={pageSize}
+            total={searchedLogs.length}
+            onPageChange={setPage}
+            onPageSizeChange={(value) => {
+              setPageSize(value)
+              setPage(1)
+            }}
+          />
+        </div>
       </CardContent>
     </Card>
   )

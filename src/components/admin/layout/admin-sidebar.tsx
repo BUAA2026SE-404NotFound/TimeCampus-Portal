@@ -42,11 +42,14 @@ export function AdminSidebar({
   return (
     <Sidebar collapsible="icon" className="font-mono">
       <SidebarHeader>
-        <div
+        <button
+          type="button"
           className={mergeClassName(
-            "flex items-center gap-3",
+            "flex w-full items-center gap-3 text-left",
             !open && "justify-center"
           )}
+          onClick={() => onPageChange("dashboard")}
+          aria-label="返回管理端首页"
         >
           <AdminLogo />
           {open && (
@@ -57,7 +60,7 @@ export function AdminSidebar({
               <p className="truncate text-base font-semibold">管理端</p>
             </div>
           )}
-        </div>
+        </button>
       </SidebarHeader>
       <SidebarSeparator />
       <SidebarContent>

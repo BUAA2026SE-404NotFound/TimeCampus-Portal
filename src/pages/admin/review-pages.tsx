@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { Check, X } from "lucide-react"
+import { Check, Search, X } from "lucide-react"
 import { toast } from "sonner"
 
 import {
@@ -8,12 +8,14 @@ import {
   rejectComment,
   rejectUgc,
 } from "@/api/admin"
+import { PaginationControls } from "@/components/admin/pagination-controls"
 import {
   EmptyTableRow,
   ReviewTableCard,
   StatusBadge,
 } from "@/components/admin/shared"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import {
   Table,
   TableBody,
@@ -102,6 +104,31 @@ export function UgcReviewPage({
   items: UgcItem[]
   onChanged: () => void
 }) {
+  const [keyword, setKeyword] = useState("")
+  const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
+  const filteredItems = items.filter((item) =>
+    [
+      item.id,
+      item.poiName,
+      item.uploader,
+      item.year,
+      item.description,
+      item.source,
+      item.createdAt,
+    ]
+      .filter(Boolean)
+      .join(" ")
+      .toLowerCase()
+      .includes(keyword.trim().toLowerCase())
+  )
+  const totalPages = Math.max(1, Math.ceil(filteredItems.length / pageSize))
+  const currentPage = Math.min(page, totalPages)
+  const pagedItems = filteredItems.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize
+  )
+
   async function updateStatus(
     id: string,
     next: "approved" | "rejected",
@@ -125,8 +152,23 @@ export function UgcReviewPage({
       title="投稿队列"
       description="接入 /api/v1/admin/ugc 与审核接口。"
     >
-      <Table className="table-fixed">
-        <TableHeader>
+      <div className="grid gap-3 px-6 pb-4">
+        <div className="relative">
+          <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            value={keyword}
+            onChange={(event) => {
+              setKeyword(event.target.value)
+              setPage(1)
+            }}
+            className="rounded-none pl-9"
+            placeholder="搜索投稿 ID、POI、投稿人、年份、描述"
+          />
+        </div>
+      </div>
+      <div className="max-h-[calc(100svh-24rem)] overflow-y-auto">
+        <Table className="table-fixed">
+        <TableHeader className="sticky top-0 z-10 bg-card">
           <TableRow>
             <TableHead className="w-44">POI / 年份</TableHead>
             <TableHead className="w-32">投稿人</TableHead>
@@ -136,8 +178,8 @@ export function UgcReviewPage({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {items.length ? (
-            items.map((item) => (
+          {pagedItems.length ? (
+            pagedItems.map((item) => (
               <TableRow key={item.id}>
                 <TableCell className="whitespace-normal">
                   <div className="line-clamp-2 font-medium">{item.poiName}</div>
@@ -177,6 +219,19 @@ export function UgcReviewPage({
           )}
         </TableBody>
       </Table>
+      </div>
+      <div className="px-6 pb-4">
+        <PaginationControls
+          page={currentPage}
+          pageSize={pageSize}
+          total={filteredItems.length}
+          onPageChange={setPage}
+          onPageSizeChange={(value) => {
+            setPageSize(value)
+            setPage(1)
+          }}
+        />
+      </div>
     </ReviewTableCard>
   )
 }
@@ -188,6 +243,23 @@ export function CommentReviewPage({
   items: CommentItem[]
   onChanged: () => void
 }) {
+  const [keyword, setKeyword] = useState("")
+  const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
+  const filteredItems = items.filter((item) =>
+    [item.id, item.poiName, item.userName, item.comment, item.createdAt]
+      .filter(Boolean)
+      .join(" ")
+      .toLowerCase()
+      .includes(keyword.trim().toLowerCase())
+  )
+  const totalPages = Math.max(1, Math.ceil(filteredItems.length / pageSize))
+  const currentPage = Math.min(page, totalPages)
+  const pagedItems = filteredItems.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize
+  )
+
   async function updateStatus(
     id: string,
     next: "approved" | "rejected",
@@ -211,8 +283,23 @@ export function CommentReviewPage({
       title="评论队列"
       description="接入 /api/v1/admin/comments。"
     >
-      <Table className="table-fixed">
-        <TableHeader>
+      <div className="grid gap-3 px-6 pb-4">
+        <div className="relative">
+          <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            value={keyword}
+            onChange={(event) => {
+              setKeyword(event.target.value)
+              setPage(1)
+            }}
+            className="rounded-none pl-9"
+            placeholder="搜索评论 ID、POI、用户、内容"
+          />
+        </div>
+      </div>
+      <div className="max-h-[calc(100svh-24rem)] overflow-y-auto">
+        <Table className="table-fixed">
+        <TableHeader className="sticky top-0 z-10 bg-card">
           <TableRow>
             <TableHead className="w-44">POI</TableHead>
             <TableHead className="w-32">用户</TableHead>
@@ -222,8 +309,8 @@ export function CommentReviewPage({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {items.length ? (
-            items.map((item) => (
+          {pagedItems.length ? (
+            pagedItems.map((item) => (
               <TableRow key={item.id}>
                 <TableCell className="whitespace-normal">
                   <span className="line-clamp-2 font-medium">
@@ -254,6 +341,19 @@ export function CommentReviewPage({
           )}
         </TableBody>
       </Table>
+      </div>
+      <div className="px-6 pb-4">
+        <PaginationControls
+          page={currentPage}
+          pageSize={pageSize}
+          total={filteredItems.length}
+          onPageChange={setPage}
+          onPageSizeChange={(value) => {
+            setPageSize(value)
+            setPage(1)
+          }}
+        />
+      </div>
     </ReviewTableCard>
   )
 }

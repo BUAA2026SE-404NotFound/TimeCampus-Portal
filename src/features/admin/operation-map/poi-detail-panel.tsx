@@ -20,8 +20,8 @@ import {
 export function PoiDetailPanel({ selectedPoi }: { selectedPoi: AdminMapPoi | null }) {
   if (!selectedPoi) {
     return (
-      <Card className="min-h-[560px] rounded-none shadow-none">
-        <CardContent className="grid min-h-[520px] place-items-center text-muted-foreground">
+      <Card className="min-h-140 rounded-none shadow-none">
+        <CardContent className="grid min-h-130 place-items-center text-muted-foreground">
           选择一个 POI 查看详情
         </CardContent>
       </Card>
@@ -29,7 +29,7 @@ export function PoiDetailPanel({ selectedPoi }: { selectedPoi: AdminMapPoi | nul
   }
 
   return (
-    <Card className="min-h-[560px] rounded-none shadow-none">
+    <Card className="min-h-140 rounded-none shadow-none">
       <CardHeader>
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
