@@ -14,6 +14,15 @@ pnpm build
 
 开发服务默认使用 Vite，`/api` 会代理到本机后端 `http://localhost:8080`。
 
+## 环境变量
+
+```env
+VITE_CAP_API_ENDPOINT=https://cap.example.com/<site-key>/
+VITE_TENCENT_MAP_KEY=...
+```
+
+`VITE_CAP_API_ENDPOINT` 是 Cap Standalone 中某个 site key 的公开 endpoint，只能放 site key，不能放 secret key。管理员登录页会把 Cap 生成的 `capToken` 随 `/api/v1/admin/login` 一起提交；真正校验必须由后端使用 Cap secret 调用 `/siteverify` 完成。
+
 ## 路由
 
 - `/`：首页
@@ -26,7 +35,20 @@ pnpm build
 - `/admin/ops-map`：运营地图
 - `/admin/logs`：审计日志
 
-管理端登录使用后端 `POST /api/v1/admin/login`，本地 token key 为 `TimeCampus-Admin-Token`。
+管理端登录使用后端 `POST /api/v1/admin/login`，本地 token key 为 `TimeCampus-Admin-Token`。登录页已接入 `src/components/cap-verification.tsx`，之后注册页可复用同一组件。
+
+## Cap 部署要点
+
+推荐把 Cap Standalone 独立部署在延迟更低、资源更宽裕的北京 2C4G 节点，和 Spring Boot 后端同区域访问 `/siteverify`；硅谷 2C2G 节点更适合做备份、静态前端或低优先级测试。Cap 官方推荐 Docker Compose + Valkey，容器空闲内存较低，但验证链路需要前端用户和后端都能稳定访问 Cap 公网域名。
+
+生产部署流程：
+
+1. 在北京节点准备 `cap.timecampus.example` 域名与 HTTPS 反向代理。
+2. 使用 `tiago2/cap:latest` 与 `valkey/valkey:9-alpine` 启动 Cap Standalone。
+3. 登录 Cap dashboard，创建 TimeCampus 管理端 site key，记录 site key 和 secret key。
+4. 前端构建时配置 `VITE_CAP_API_ENDPOINT=https://cap.timecampus.example/<site-key>/`。
+5. 后端配置 `CAP_SITEVERIFY_URL=https://cap.timecampus.example/<site-key>/siteverify` 和 `CAP_SECRET=<secret-key>`，登录接口收到 `capToken` 后先完成服务端校验。
+6. Nginx/Caddy 反代 Cap 时保留真实客户端 IP，例如 `X-Forwarded-For`，Cap 容器配置 `RATELIMIT_IP_HEADER=x-forwarded-for`。
 
 ## 目录结构
 

@@ -112,3 +112,28 @@
     @apply bg-background font-sans text-foreground;
   }
 }
+
+@layer components {
+  cap-widget.timecampus-cap {
+    --cap-background: var(--card);
+    --cap-border-color: var(--input);
+    --cap-border-radius: 0;
+    --cap-widget-width: min(300px, calc(100vw - 32px));
+    --cap-widget-height: 58px;
+    --cap-widget-padding: 10px;
+    --cap-gap: 12px;
+    --cap-color: var(--foreground);
+    --cap-checkbox-size: 22px;
+    --cap-checkbox-border: 1px solid var(--input);
+    --cap-checkbox-border-radius: 0;
+    --cap-checkbox-background: var(--background);
+    --cap-font:
+      "JetBrains Mono Variable", "Noto Sans SC", ui-monospace, SFMono-Regular,
+      monospace;
+    --cap-spinner-color: var(--primary);
+    --cap-spinner-background-color: var(--muted);
+    --cap-spinner-thickness: 4px;
+    display: block;
+    width: min(300px, calc(100vw - 32px));
+  }
+}

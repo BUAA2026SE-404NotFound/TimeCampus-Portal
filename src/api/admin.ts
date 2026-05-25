@@ -216,6 +216,7 @@ export type AdminSnapshot = {
 export type AdminLoginInput = {
   adminName: string
   password: string
+  capToken?: string
 }
 
 export type PoiPayload = {

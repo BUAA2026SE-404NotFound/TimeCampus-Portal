@@ -1,8 +1,9 @@
-import { useState } from "react"
+import React, { useState } from "react"
 import { ShieldCheck } from "lucide-react"
 import { toast } from "sonner"
 
 import { loginAdmin } from "@/api/admin"
+import { CapVerification } from "@/components/cap-verification"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { AdminFooter } from "@/components/admin/shared"
 import { Button } from "@/components/ui/button"
@@ -16,7 +17,6 @@ import {
 } from "@/components/ui/card"
 import {
   Field,
-  FieldDescription,
   FieldGroup,
   FieldLabel,
 } from "@/components/ui/field"
@@ -32,19 +32,33 @@ export function LoginScreen({
 }) {
   const [adminName, setAdminName] = useState("admin")
   const [password, setPassword] = useState("123456")
+  const [capToken, setCapToken] = useState("")
+  const [capResetSignal, setCapResetSignal] = useState(0)
   const [loading, setLoading] = useState(false)
+  const capEndpoint = import.meta.env.VITE_CAP_API_ENDPOINT || ""
 
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: React.SubmitEvent<HTMLFormElement>) {
     event.preventDefault()
     if (loading) return
+
+    if (capEndpoint && !capToken) {
+      toast.error("请先完成人机验证")
+      return
+    }
 
     setLoading(true)
 
     try {
-      const result = await loginAdmin({ adminName, password })
+      const result = await loginAdmin({
+        adminName,
+        password,
+        capToken: capEndpoint ? capToken : undefined,
+      })
       toast.success("已进入管理端")
       onLogin(result.profile)
     } catch (error) {
+      setCapToken("")
+      setCapResetSignal((current) => current + 1)
       toast.error(error instanceof Error ? error.message : "登录失败")
     } finally {
       setLoading(false)
@@ -109,17 +123,20 @@ export function LoginScreen({
                     autoComplete="current-password"
                     required
                   />
-                  <FieldDescription>
-                    忘记密码（请联系开发团队）
-                  </FieldDescription>
                 </Field>
+                <CapVerification
+                  endpoint={capEndpoint}
+                  value={capToken}
+                  onValueChange={setCapToken}
+                  resetSignal={capResetSignal}
+                />
               </FieldGroup>
             </CardContent>
             <CardFooter className="border-t bg-muted/30">
               <Button
                 type="submit"
                 className="w-full rounded-none font-mono"
-                disabled={loading}
+                disabled={loading || Boolean(capEndpoint && !capToken)}
               >
                 <ShieldCheck data-icon="inline-start" />
                 {loading ? "登录中" : "登录"}

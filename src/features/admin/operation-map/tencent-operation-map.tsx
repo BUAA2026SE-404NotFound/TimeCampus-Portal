@@ -134,6 +134,9 @@ export function TencentOperationMap({
             minZoom: 14,
             maxZoom: 19,
             control: { zoom: true, scale: true, rotation: false },
+            baseMap: {
+              type: 'satellite'
+            }
           })
         }
 
