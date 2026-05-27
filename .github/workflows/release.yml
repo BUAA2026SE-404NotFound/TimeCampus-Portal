@@ -30,7 +30,6 @@ jobs:
             set -e
             
             REPO_DIR=~/TimeCampus-Portal
-            APP_DIR=~/nginx/timecampus-portal
             REPO_URL=https://github.com/BUAA2026SE-404NotFound/TimeCampus-Portal.git
             if [ ! -d "$REPO_DIR" ]; then
               git clone $REPO_URL $REPO_DIR
@@ -50,9 +49,5 @@ jobs:
               echo "Build timed out after 30 seconds"
               exit 1
             fi
-            
-            # 部署到 nginx 目录
-            rm -rf $APP_DIR
-            cp -r dist $APP_DIR
             
             echo "Deployment completed successfully!"
