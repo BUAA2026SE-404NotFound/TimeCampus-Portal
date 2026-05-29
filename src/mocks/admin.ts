@@ -61,6 +61,7 @@ export type MediaRecord = {
   type: string
   imagePath?: string
   previewUrl?: string
+  thumbnailUrl?: string
   year: number
   description: string
   uploader?: string

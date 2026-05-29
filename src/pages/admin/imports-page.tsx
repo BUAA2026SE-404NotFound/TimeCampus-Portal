@@ -48,6 +48,10 @@ function mediaSource(item: MediaRecord) {
   return item.previewUrl || item.imagePath
 }
 
+function mediaThumbnailSource(item: MediaRecord) {
+  return item.thumbnailUrl || mediaSource(item)
+}
+
 function mediaTimeValue(item: MediaRecord) {
   const value = Date.parse(item.createdAt)
   return Number.isFinite(value) ? value : 0
@@ -58,7 +62,7 @@ function poiMediaCount(poiId: string, media: MediaRecord[]) {
 }
 
 function MediaThumb({ item }: { item: MediaRecord }) {
-  const src = mediaSource(item)
+  const src = mediaThumbnailSource(item)
 
   if (!src) {
     return (
@@ -329,8 +333,8 @@ export function ImportsPage({
       toast.error("仅支持 JPG、JPEG、PNG 图片")
       return
     }
-    if (file.size > 10 * 1024 * 1024) {
-      toast.error("图片大小不能超过 10MB")
+    if (file.size > 20 * 1024 * 1024) {
+      toast.error("图片大小不能超过 20MB")
       return
     }
     const objectUrl = URL.createObjectURL(file)
@@ -514,6 +518,9 @@ export function ImportsPage({
                   <p className="truncate text-xs text-muted-foreground">
                     {uploadFile.name} ·{" "}
                     {(uploadFile.size / 1024 / 1024).toFixed(2)} MB
+                    {uploadFile.size > 2 * 1024 * 1024
+                      ? " · 后端会压缩后存储"
+                      : ""}
                   </p>
                 ) : null}
               </>

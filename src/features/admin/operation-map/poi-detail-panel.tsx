@@ -146,10 +146,10 @@ function MediaList({ items }: { items?: AdminMapMedia[] }) {
           key={media.id}
           className="grid grid-cols-[96px_1fr] items-center gap-3 border p-2"
         >
-          {media.previewUrl || media.imagePath ? (
+          {media.thumbnailUrl || media.previewUrl || media.imagePath ? (
             <img
               className="h-16 w-24 object-cover"
-              src={media.previewUrl || media.imagePath}
+              src={media.thumbnailUrl || media.previewUrl || media.imagePath}
               alt={mediaDescription(media)}
             />
           ) : (

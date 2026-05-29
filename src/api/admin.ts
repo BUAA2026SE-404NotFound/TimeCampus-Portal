@@ -45,6 +45,7 @@ type BackendMedia = {
   type: string
   imagePath?: string
   previewUrl?: string
+  thumbnailUrl?: string
   year: number
   description?: string
   uploadUserId?: number
@@ -93,6 +94,7 @@ export type AdminMapMedia = {
   type?: string
   imagePath?: string
   previewUrl?: string
+  thumbnailUrl?: string
   year?: number
   description?: string
   uploadUserId?: number
@@ -313,6 +315,7 @@ function toMediaRecord(item: BackendMedia, poiList: Poi[]): MediaRecord {
     type: item.type?.toUpperCase() || "UNKNOWN",
     imagePath: item.imagePath,
     previewUrl: item.previewUrl,
+    thumbnailUrl: item.thumbnailUrl,
     year: item.year,
     description: item.description || item.imagePath || "未填写描述",
     uploader: item.uploadUserId ? `用户 ${item.uploadUserId}` : undefined,

@@ -19,7 +19,13 @@ pnpm build
 ```env
 VITE_CAP_API_ENDPOINT=https://cap.example.com/<site-key>/
 VITE_TENCENT_MAP_KEY=...
+VITE_ADMIN_DOMAIN=你的管理端域名
+VITE_ADMIN_REDIRECT=true
 ```
+
+`VITE_ADMIN_DOMAIN` 用于指定管理端域名。
+
+`VITE_ADMIN_REDIRECT` 控制是否将 `/admin` 访问强制跳转到管理端域名；本地测试可设置为 `false` 以保留 `localhost` 路由。
 
 `VITE_CAP_API_ENDPOINT` 是 Cap Standalone 中某个 site key 的公开 endpoint，只能放 site key，不能放 secret key。管理员登录页会把 Cap 生成的 `capToken` 随 `/api/v1/admin/login` 一起提交；真正校验必须由后端使用 Cap secret 调用 `/siteverify` 完成。
 

@@ -12,8 +12,20 @@ function isAdminPath(pathname: string) {
   return pathname === "/admin" || pathname.startsWith("/admin/")
 }
 
+const adminDomain = import.meta.env.VITE_ADMIN_DOMAIN;
+const adminRedirectEnabled = import.meta.env.VITE_ADMIN_REDIRECT !== "false"
+
 function isAdminHost() {
-  return window.location.hostname === "admin.timecampus.asia"
+  return window.location.hostname === adminDomain
+}
+
+function adminBrowserPath(pathname: string) {
+  const stripped = pathname.replace(/^\/admin/, "") || "/"
+  return stripped.startsWith("/") ? stripped : `/${stripped}`
+}
+
+function adminUrl(pathname = "/") {
+  return `${window.location.protocol}//${adminDomain}${pathname}`
 }
 
 function toInternalPath(pathname: string, adminHost: boolean) {
@@ -34,8 +46,7 @@ function toBrowserPath(pathname: string, adminHost: boolean) {
     return pathname
   }
 
-  const stripped = pathname.replace(/^\/admin/, "") || "/"
-  return stripped.startsWith("/") ? stripped : `/${stripped}`
+  return adminBrowserPath(pathname)
 }
 
 function getCanonicalPath(pathname: string, adminHost: boolean) {
@@ -45,11 +56,18 @@ function getCanonicalPath(pathname: string, adminHost: boolean) {
 
 export function App() {
   const adminHost = isAdminHost()
+  const shouldRedirectAdminPath =
+    adminRedirectEnabled && !adminHost && isAdminPath(window.location.pathname)
   const [pathname, setPathname] = useState(() =>
     getCanonicalPath(window.location.pathname, adminHost)
   )
 
   useEffect(() => {
+    if (shouldRedirectAdminPath) {
+      window.location.replace(adminUrl(adminBrowserPath(window.location.pathname)))
+      return
+    }
+
     const canonicalPath = getCanonicalPath(window.location.pathname, adminHost)
     const browserPath = toBrowserPath(canonicalPath, adminHost)
     if (window.location.pathname !== browserPath) {
@@ -67,7 +85,7 @@ export function App() {
 
     window.addEventListener("popstate", handlePopState)
     return () => window.removeEventListener("popstate", handlePopState)
-  }, [adminHost])
+  }, [adminHost, shouldRedirectAdminPath])
 
   const navigate = useCallback((path: string) => {
     const browserPath = toBrowserPath(path, adminHost)
@@ -80,6 +98,10 @@ export function App() {
   const activePage = useMemo(() => getPageFromPath(pathname), [pathname])
   const isAdminRoute = isAdminPath(pathname)
 
+  if (shouldRedirectAdminPath) {
+    return null
+  }
+
   function handleAdminPageChange(page: PageId) {
     navigate(getAdminPagePath(page))
   }
@@ -90,8 +112,8 @@ export function App() {
         activePage={activePage}
         onPageChange={handleAdminPageChange}
         onBack={() => {
-          if (adminHost) {
-            window.location.href = `${window.location.protocol}//www.timecampus.asia/`
+          if (adminHost && adminRedirectEnabled) {
+            window.location.href = `${window.location.protocol}//${import.meta.env.VITE_ADMIN_DOMAIN}/`
             return
           }
           navigate("/")
@@ -100,7 +122,17 @@ export function App() {
     )
   }
 
-  return <PortalPage onEnterAdmin={() => navigate("/admin/dashboard")} />
+  return (
+    <PortalPage
+      onEnterAdmin={() => {
+        if (adminHost || !adminRedirectEnabled) {
+          navigate("/admin/dashboard")
+          return
+        }
+        window.location.href = adminUrl("/")
+      }}
+    />
+  )
 }
 
 export default App
