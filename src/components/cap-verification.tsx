@@ -35,11 +35,14 @@ export function CapVerification({
   value,
   onValueChange,
   resetSignal,
+  skip,
 }: {
   endpoint?: string
   value: string
   onValueChange: (token: string) => void
   resetSignal?: number
+  /** 本地开发时跳过人机验证 */
+  skip?: boolean
 }) {
   const widgetRef = useRef<CapWidget | null>(null)
   const closeTimerRef = useRef<number | null>(null)
@@ -127,6 +130,32 @@ export function CapVerification({
 
     return () => window.clearTimeout(decorateTimer)
   }, [open])
+
+  useEffect(() => {
+    if (!skip) return
+
+    onValueChange("bypassed")
+
+    return () => {
+      onValueChange("")
+    }
+  }, [skip, onValueChange])
+
+  if (skip) {
+    return (
+      <Field>
+        <div className="flex items-center gap-2 border border-dashed border-emerald-500/50 bg-emerald-500/5 px-3 py-2 text-sm text-emerald-600 dark:text-emerald-400">
+          <span className="size-1.5 rounded-full bg-emerald-500" />
+          人机验证已跳过（本地测试模式）
+        </div>
+        <FieldDescription>
+          {endpoint
+            ? "已启用 VITE_SKIP_CAPTCHA，人机验证已绕过。"
+            : "未配置 VITE_CAP_API_ENDPOINT，人机验证已跳过。"}
+        </FieldDescription>
+      </Field>
+    )
+  }
 
   return (
     <Field>

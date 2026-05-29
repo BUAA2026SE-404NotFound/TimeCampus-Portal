@@ -36,12 +36,13 @@ export function LoginScreen({
   const [capResetSignal, setCapResetSignal] = useState(0)
   const [loading, setLoading] = useState(false)
   const capEndpoint = import.meta.env.VITE_CAP_API_ENDPOINT || ""
+  const skipCap = import.meta.env.VITE_SKIP_CAPTCHA === "true"
 
   async function handleSubmit(event: React.SubmitEvent<HTMLFormElement>) {
     event.preventDefault()
     if (loading) return
 
-    if (capEndpoint && !capToken) {
+    if (capEndpoint && !capToken && !skipCap) {
       toast.error("请先完成人机验证")
       return
     }
@@ -129,6 +130,7 @@ export function LoginScreen({
                   value={capToken}
                   onValueChange={setCapToken}
                   resetSignal={capResetSignal}
+                  skip={skipCap}
                 />
               </FieldGroup>
             </CardContent>
@@ -136,7 +138,7 @@ export function LoginScreen({
               <Button
                 type="submit"
                 className="w-full rounded-none font-mono"
-                disabled={loading || Boolean(capEndpoint && !capToken)}
+                disabled={loading || Boolean(capEndpoint && !capToken && !skipCap)}
               >
                 <ShieldCheck data-icon="inline-start" />
                 {loading ? "登录中" : "登录"}
