@@ -28,7 +28,7 @@ VITE_TENCENT_MAP_KEY=...
 - `/`：首页
 - `/admin/dashboard`：运营首页
 - `/admin/pois`：POI 管理
-- `/admin/imports`：官方内容上传
+- `/admin/imports`：内容上传
 - `/admin/ugc`：UGC 审核
 - `/admin/comments`：评论审核
 - `/admin/map-tools`：地图工具
@@ -38,10 +38,6 @@ VITE_TENCENT_MAP_KEY=...
 管理端登录使用后端 `POST /api/v1/admin/login`，本地 token key 为 `TimeCampus-Admin-Token`。登录页已接入 `src/components/cap-verification.tsx`，之后注册页可复用同一组件。
 
 ## Cap 部署要点
-
-推荐把 Cap Standalone 独立部署在延迟更低、资源更宽裕的北京 2C4G 节点，和 Spring Boot 后端同区域访问 `/siteverify`；硅谷 2C2G 节点更适合做备份、静态前端或低优先级测试。Cap 官方推荐 Docker Compose + Valkey，容器空闲内存较低，但验证链路需要前端用户和后端都能稳定访问 Cap 公网域名。
-
-生产部署流程：
 
 1. 在北京节点准备 `cap.timecampus.example` 域名与 HTTPS 反向代理。
 2. 使用 `tiago2/cap:latest` 与 `valkey/valkey:9-alpine` 启动 Cap Standalone。

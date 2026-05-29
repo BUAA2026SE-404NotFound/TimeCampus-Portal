@@ -150,12 +150,18 @@ export function CapVerification({
             {value ? "人机验证已通过" : "点击完成人机验证"}
           </Button>
           <div
+            role="presentation"
             className={mergeClassName(
               "fixed inset-0 z-50 grid place-items-center px-4 transition-opacity",
               open ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
             )}
             onClick={(event) => {
               if (event.target === event.currentTarget && !value) {
+                setOpen(false)
+              }
+            }}
+            onKeyDown={(event) => {
+              if (event.key === "Escape" && !value) {
                 setOpen(false)
               }
             }}

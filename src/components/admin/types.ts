@@ -71,7 +71,7 @@ export const navigationGroups: Array<{
       {
         id: "imports",
         path: "/admin/imports",
-        label: "官方内容上传",
+        label: "内容上传",
         description: "上传入库",
         icon: FileUp,
       },
@@ -118,8 +118,8 @@ export const pageTitles: Record<
     description: "维护校园兴趣点、坐标、状态和内容覆盖。",
   },
   imports: {
-    title: "官方内容上传",
-    description: "上传本地图片或导入已有 URL，并查看官方上传记录。",
+    title: "内容上传",
+    description: "上传本地图片或导入已有 URL，并查看上传记录。",
   },
   ugc: {
     title: "UGC 审核",

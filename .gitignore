@@ -26,4 +26,8 @@ dist-ssr
 .env.production
 .env.dev
 openapi.yaml
+
+# agents
 AGENTS.md
+.agents
+.claude

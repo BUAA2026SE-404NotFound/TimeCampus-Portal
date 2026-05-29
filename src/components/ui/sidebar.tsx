@@ -1,5 +1,6 @@
 /* eslint-disable react-refresh/only-export-components */
 import * as React from "react"
+import { use } from "react"
 import { PanelLeftIcon } from "lucide-react"
 import { Slot } from "radix-ui"
 
@@ -31,7 +32,7 @@ type SidebarContextValue = {
 const SidebarContext = React.createContext<SidebarContextValue | null>(null)
 
 function useSidebar() {
-  const context = React.useContext(SidebarContext)
+  const context = use(SidebarContext)
 
   if (!context) {
     throw new Error("useSidebar must be used within a SidebarProvider.")

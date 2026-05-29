@@ -1,4 +1,4 @@
-import { useMemo } from "react"
+import { memo } from "react"
 import { cva, type VariantProps } from "class-variance-authority"
 
 import { mergeClassName } from "@/lib/utils"
@@ -171,6 +171,31 @@ function FieldSeparator({
   )
 }
 
+const FieldErrorContent = memo(function FieldErrorContent({
+  errors,
+}: {
+  errors: Array<{ message?: string } | undefined>
+}) {
+  if (errors.length === 0) return null
+
+  const uniqueErrors = [
+    ...new Map(errors.map((error) => [error?.message, error])).values(),
+  ]
+
+  if (uniqueErrors.length === 1) {
+    return <>{uniqueErrors[0]?.message}</>
+  }
+
+  return (
+    <ul className="ml-4 flex list-disc flex-col gap-1">
+      {uniqueErrors.map(
+        (error) =>
+          error?.message && <li key={error.message}>{error.message}</li>
+      )}
+    </ul>
+  )
+})
+
 function FieldError({
   className,
   children,
@@ -179,34 +204,23 @@ function FieldError({
 }: React.ComponentProps<"div"> & {
   errors?: Array<{ message?: string } | undefined>
 }) {
-  const content = useMemo(() => {
-    if (children) {
-      return children
-    }
-
-    if (!errors?.length) {
-      return null
-    }
-
-    const uniqueErrors = [
-      ...new Map(errors.map((error) => [error?.message, error])).values(),
-    ]
-
-    if (uniqueErrors?.length == 1) {
-      return uniqueErrors[0]?.message
-    }
-
+  if (children) {
     return (
-      <ul className="ml-4 flex list-disc flex-col gap-1">
-        {uniqueErrors.map(
-          (error, index) =>
-            error?.message && <li key={index}>{error.message}</li>
+      <div
+        role="alert"
+        data-slot="field-error"
+        className={mergeClassName(
+          "text-sm font-normal text-destructive",
+          className
         )}
-      </ul>
+        {...props}
+      >
+        {children}
+      </div>
     )
-  }, [children, errors])
+  }
 
-  if (!content) {
+  if (!errors?.length) {
     return null
   }
 
@@ -214,10 +228,13 @@ function FieldError({
     <div
       role="alert"
       data-slot="field-error"
-      className={mergeClassName("text-sm font-normal text-destructive", className)}
+      className={mergeClassName(
+        "text-sm font-normal text-destructive",
+        className
+      )}
       {...props}
     >
-      {content}
+      <FieldErrorContent errors={errors} />
     </div>
   )
 }

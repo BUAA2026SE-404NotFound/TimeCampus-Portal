@@ -62,7 +62,7 @@ export function SiteHeader() {
                 {navItems.map((item) => (
                   <SheetClose asChild key={item.href}>
                     <a
-                      className="border px-3 py-3 hover:bg-muted"
+                      className="border p-3 hover:bg-muted"
                       href={item.href}
                     >
                       {item.label}

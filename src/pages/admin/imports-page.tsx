@@ -201,15 +201,15 @@ export function ImportsPage({
   const [recordPoiId, setRecordPoiId] = useState("all")
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(6)
-  const [leftColumnHeight, setLeftColumnHeight] = useState<number | null>(null)
+  const [leftColumnHeight, setLeftColumnHeight] = useState<number>()
   const previewUrlRef = useRef("")
   const fileInputRef = useRef<HTMLInputElement | null>(null)
   const leftColumnRef = useRef<HTMLDivElement | null>(null)
 
-  const officialMedia = useMemo(
+  const media = useMemo(
     () =>
       snapshot.media
-        .filter((item) => item.type.toLowerCase() === "official")
+        // .filter((item) => item.type.toLowerCase() === "official")
         .sort((a, b) => mediaTimeValue(b) - mediaTimeValue(a)),
     [snapshot.media]
   )
@@ -217,7 +217,7 @@ export function ImportsPage({
   const filteredMedia = useMemo(() => {
     const keyword = recordKeyword.trim().toLowerCase()
 
-    return officialMedia.filter((item) => {
+    return media.filter((item) => {
       const matchesStatus =
         recordStatus === "all" || item.reviewStatus === recordStatus
       const matchesPoi = recordPoiId === "all" || item.poiId === recordPoiId
@@ -240,7 +240,7 @@ export function ImportsPage({
         (!keyword || searchable.includes(keyword))
       )
     })
-  }, [officialMedia, recordKeyword, recordPoiId, recordStatus])
+  }, [media, recordKeyword, recordPoiId, recordStatus])
 
   const totalPages = Math.max(1, Math.ceil(filteredMedia.length / pageSize))
   const currentPage = Math.min(page, totalPages)
@@ -251,12 +251,14 @@ export function ImportsPage({
   const selectedRecord =
     filteredMedia.find((item) => item.id === selectedRecordId) ??
     filteredMedia[0] ??
-    officialMedia[0]
+    media[0]
 
   useEffect(() => {
+    const url = previewUrlRef.current
+
     return () => {
-      if (previewUrlRef.current) {
-        URL.revokeObjectURL(previewUrlRef.current)
+      if (url) {
+        URL.revokeObjectURL(url)
       }
     }
   }, [])
@@ -389,7 +391,7 @@ export function ImportsPage({
         year: base.year,
         description: base.description,
       })
-      toast.success("官方图片已上传")
+      toast.success("图片已上传")
       clearFilePreview()
       setDescription("")
       onChanged()
@@ -415,7 +417,7 @@ export function ImportsPage({
         className="flex min-w-0 flex-col rounded-none shadow-none"
       >
         <CardHeader>
-          <CardTitle>官方内容上传</CardTitle>
+          <CardTitle>内容上传</CardTitle>
           <CardDescription>
             选择 POI 后上传本地图片，或导入已有图片 URL。
           </CardDescription>
@@ -586,7 +588,7 @@ export function ImportsPage({
               </SelectTrigger>
               <SelectContent className="rounded-none">
                 <SelectItem value="all">全部状态</SelectItem>
-                <SelectItem value="APPROVED">已通过</SelectItem>
+                <SelectItem value="APPROVED">已上架</SelectItem>
                 <SelectItem value="PENDING">待审核</SelectItem>
                 <SelectItem value="REJECTED">已驳回</SelectItem>
               </SelectContent>

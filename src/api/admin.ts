@@ -444,7 +444,7 @@ export async function getAdminSnapshot(): Promise<AdminSnapshot> {
     ? [
         {
           id: "official-media",
-          fileName: "后端官方影像",
+          fileName: "后端影像",
           type: "OFFICIAL",
           total: officialMedia.length,
           success: officialMedia.filter(
@@ -455,8 +455,10 @@ export async function getAdminSnapshot(): Promise<AdminSnapshot> {
           operator: storedProfile?.name || "admin",
           createdAt:
             officialMedia
-              .map((item) => item.createTime || item.updateTime)
-              .filter(Boolean)
+              .flatMap((item) => {
+                const t = item.createTime || item.updateTime
+                return t ? [t] : []
+              })
               .sort()
               .at(-1) || "-",
         },

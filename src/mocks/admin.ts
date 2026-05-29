@@ -127,7 +127,7 @@ export const dashboardMetrics: DashboardMetric[] = [
     icon: Landmark,
   },
   {
-    label: "官方内容",
+    label: "图片内容",
     value: "??",
     detail: "可见内容 ?? 条",
     trend: "+?? 本月",
@@ -337,7 +337,7 @@ export const auditLogs: AuditLog[] = [
   {
     id: "log-003",
     type: "CONTENT_IMPORT",
-    action: "批量导入官方内容 94 条",
+    action: "批量导入内容 94 条",
     operator: "TimeCampus Admin",
     target: "import-001",
     createdAt: "2026-05-15 09:12",

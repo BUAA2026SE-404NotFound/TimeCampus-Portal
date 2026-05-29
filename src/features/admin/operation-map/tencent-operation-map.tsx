@@ -24,6 +24,7 @@ type TencentMap = {
 type TencentMarkerLayer = {
   setMap?: (map: TencentMap | null) => void
   on: (event: string, handler: (event: TencentMarkerClickEvent) => void) => void
+  off?: (event: string, handler: (event: TencentMarkerClickEvent) => void) => void
 }
 
 type TencentMarkerClickEvent = {
@@ -186,7 +187,7 @@ export function TencentOperationMap({
       styles,
       geometries,
     })
-    markerLayer.on("click", (event) => {
+    const handleMarkerClick = (event: TencentMarkerClickEvent) => {
       const poiId = Number(
         event.geometry?.properties?.poiId ?? event.geometry?.id
       )
@@ -194,8 +195,14 @@ export function TencentOperationMap({
       if (poi) {
         onSelectPoi(poi)
       }
-    })
+    }
+    markerLayer.on("click", handleMarkerClick)
     markerLayerRef.current = markerLayer
+
+    return () => {
+      markerLayer.off?.("click", handleMarkerClick)
+      markerLayer.setMap?.(null)
+    }
   }, [mapKey, mapReady, onSelectPoi, validPois])
 
   useEffect(() => {
@@ -209,11 +216,12 @@ export function TencentOperationMap({
   }, [selectedPoi])
 
   useEffect(() => {
+    const map = mapRef.current
+
     return () => {
-      markerLayerRef.current?.setMap?.(null)
-      mapRef.current?.destroy?.()
-      markerLayerRef.current = null
+      map?.destroy?.()
       mapRef.current = null
+      markerLayerRef.current = null
     }
   }, [])
 
