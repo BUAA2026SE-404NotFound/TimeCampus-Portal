@@ -52,7 +52,7 @@ jobs:
             fi
 
             # 将构建产物复制到部署目录
-            rm -rf $APP_DIR/*
-            cp -r dist/* $APP_DIR/
+            sudo rm -rf $APP_DIR/*
+            sudo cp -r dist/* $APP_DIR/
             
             echo "Deployment completed successfully!"
