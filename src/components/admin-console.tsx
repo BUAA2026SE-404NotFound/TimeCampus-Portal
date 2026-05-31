@@ -20,10 +20,14 @@ export function AdminConsole({
   activePage,
   onPageChange,
   onBack,
+  onRegister,
+  onRequireLogin,
 }: {
   activePage: PageId
   onPageChange: (page: PageId) => void
   onBack?: () => void
+  onRegister?: () => void
+  onRequireLogin?: () => void
 }) {
   const [profile, setProfile] = useState<AdminProfile | null>(() =>
     getStoredAdminProfile()
@@ -44,6 +48,7 @@ export function AdminConsole({
 
   useEffect(() => {
     if (!profile) {
+      onRequireLogin?.()
       return
     }
 
@@ -66,13 +71,14 @@ export function AdminConsole({
     return () => {
       active = false
     }
-  }, [profile])
+  }, [profile, onRequireLogin])
 
   async function handleLogout() {
     await logoutAdmin()
     setProfile(null)
     setSnapshot(null)
     toast.success("已退出登录")
+    onRequireLogin?.()
   }
 
   function handleLogin(nextProfile: AdminProfile) {
@@ -81,7 +87,13 @@ export function AdminConsole({
   }
 
   if (!profile) {
-    return <LoginScreen onLogin={handleLogin} onBack={onBack} />
+    return (
+      <LoginScreen
+        onLogin={handleLogin}
+        onBack={onBack}
+        onRegister={onRegister}
+      />
+    )
   }
 
   return (

@@ -9,9 +9,13 @@ import {
 
 type AdminConsoleCardProps = {
   onEnter?: () => void
+  onRegister?: () => void
 }
 
-export function AdminConsoleCard({ onEnter }: AdminConsoleCardProps) {
+export function AdminConsoleCard({
+  onEnter,
+  onRegister,
+}: AdminConsoleCardProps) {
   return (
     <Card
       id="admin-console"
@@ -30,8 +34,12 @@ export function AdminConsoleCard({ onEnter }: AdminConsoleCardProps) {
         <Button className="rounded-none font-mono" onClick={onEnter}>
           登录
         </Button>
-        <Button className="rounded-none font-mono" variant="outline">
-          注册（暂未开放）
+        <Button
+          className="rounded-none font-mono"
+          variant="outline"
+          onClick={onRegister}
+        >
+          注册
         </Button>
       </CardFooter>
     </Card>
