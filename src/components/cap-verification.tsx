@@ -175,6 +175,8 @@ export function CapVerification({
               alt=""
               className="size-4 object-contain"
               aria-hidden="true"
+              loading="eager"
+              decoding="async"
             />
             {value ? "人机验证已通过" : "点击完成人机验证"}
           </Button>
@@ -182,7 +184,9 @@ export function CapVerification({
             role="presentation"
             className={mergeClassName(
               "fixed inset-0 z-50 grid place-items-center px-4 transition-opacity",
-              open ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
+              open
+                ? "pointer-events-auto opacity-100"
+                : "pointer-events-none opacity-0"
             )}
             onClick={(event) => {
               if (event.target === event.currentTarget && !value) {

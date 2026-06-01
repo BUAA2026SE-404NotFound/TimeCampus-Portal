@@ -23,6 +23,8 @@ export function AdminLogo() {
         className="max-h-7 max-w-7 object-contain"
         src={projectLogo}
         alt="时光航迹 Logo"
+        loading="eager"
+        decoding="async"
       />
     </div>
   )

@@ -1,8 +1,10 @@
 import React, { useState } from "react"
-import { LogIn, Mail, Send, UserPlus } from "lucide-react"
+import { LogIn, ShieldCheck, UserPlus } from "lucide-react"
 import { toast } from "sonner"
 
+import { registerAdmin } from "@/api/admin"
 import { AdminFooter } from "@/components/admin/shared"
+import { CapVerification } from "@/components/cap-verification"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { Button } from "@/components/ui/button"
 import {
@@ -15,7 +17,6 @@ import {
 } from "@/components/ui/card"
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
 
 type RegisterScreenProps = {
   onBack?: () => void
@@ -23,22 +24,46 @@ type RegisterScreenProps = {
 }
 
 export function RegisterScreen({ onBack, onLogin }: RegisterScreenProps) {
-  const [name, setName] = useState("")
-  const [email, setEmail] = useState("")
-  const [reason, setReason] = useState("")
+  const [adminName, setAdminName] = useState("")
+  const [password, setPassword] = useState("")
+  const [confirmPassword, setConfirmPassword] = useState("")
+  const [capToken, setCapToken] = useState("")
+  const [capResetSignal, setCapResetSignal] = useState(0)
+  const [loading, setLoading] = useState(false)
+  const capEndpoint = import.meta.env.VITE_CAP_API_ENDPOINT || ""
+  const skipCap = import.meta.env.VITE_SKIP_CAPTCHA === "true"
 
-  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
+    if (loading) return
 
-    const subject = encodeURIComponent("TimeCampus 管理员账号申请")
-    const body = encodeURIComponent(
-      [`申请人：${name}`, `联系方式：${email}`, "", "申请说明：", reason].join(
-        "\n"
-      )
-    )
+    if (password !== confirmPassword) {
+      toast.error("两次输入的密码不一致")
+      return
+    }
 
-    window.location.href = `mailto:kurna2026@outlook.com?subject=${subject}&body=${body}`
-    toast.info("已打开邮件客户端，请发送申请信息")
+    if (capEndpoint && !capToken && !skipCap) {
+      toast.error("请先完成人机验证")
+      return
+    }
+
+    setLoading(true)
+
+    try {
+      await registerAdmin({
+        adminName: adminName.trim(),
+        password,
+        capToken: capEndpoint ? capToken : "skip-local-captcha",
+      })
+      toast.success("注册成功，默认权限为 none，请等待超级管理员分配权限")
+      onLogin?.()
+    } catch (error) {
+      setCapToken("")
+      setCapResetSignal((current) => current + 1)
+      toast.error(error instanceof Error ? error.message : "注册失败")
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -74,51 +99,68 @@ export function RegisterScreen({ onBack, onLogin }: RegisterScreenProps) {
               管理员注册
             </CardTitle>
             <CardDescription>
-              管理员账号需要人工审核。提交后由维护人员创建账户并分配权限。
+              调用 POST /api/v1/admin/register 创建账户；新账户默认 none 权限。
             </CardDescription>
           </CardHeader>
           <form onSubmit={handleSubmit}>
             <CardContent>
               <FieldGroup>
                 <Field>
-                  <FieldLabel htmlFor="register-name">姓名或团队</FieldLabel>
+                  <FieldLabel htmlFor="register-name">管理员账号</FieldLabel>
                   <Input
                     id="register-name"
-                    value={name}
-                    onChange={(event) => setName(event.target.value)}
+                    value={adminName}
+                    onChange={(event) => setAdminName(event.target.value)}
                     className="rounded-none"
-                    autoComplete="name"
+                    autoComplete="username"
                     required
                   />
                 </Field>
                 <Field>
-                  <FieldLabel htmlFor="register-email">联系方式</FieldLabel>
+                  <FieldLabel htmlFor="register-password">密码</FieldLabel>
                   <Input
-                    id="register-email"
-                    type="email"
-                    value={email}
-                    onChange={(event) => setEmail(event.target.value)}
+                    id="register-password"
+                    type="password"
+                    value={password}
+                    onChange={(event) => setPassword(event.target.value)}
                     className="rounded-none"
-                    autoComplete="email"
+                    autoComplete="new-password"
                     required
                   />
                 </Field>
                 <Field>
-                  <FieldLabel htmlFor="register-reason">申请说明</FieldLabel>
-                  <Textarea
-                    id="register-reason"
-                    value={reason}
-                    onChange={(event) => setReason(event.target.value)}
-                    className="min-h-28 rounded-none"
+                  <FieldLabel htmlFor="register-confirm-password">
+                    确认密码
+                  </FieldLabel>
+                  <Input
+                    id="register-confirm-password"
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(event) => setConfirmPassword(event.target.value)}
+                    className="rounded-none"
+                    autoComplete="new-password"
                     required
                   />
                 </Field>
+                <CapVerification
+                  endpoint={capEndpoint}
+                  value={capToken}
+                  onValueChange={setCapToken}
+                  resetSignal={capResetSignal}
+                  skip={skipCap}
+                />
               </FieldGroup>
             </CardContent>
             <CardFooter className="grid gap-2 border-t bg-muted/30 sm:grid-cols-2">
-              <Button type="submit" className="rounded-none font-mono">
-                <Send data-icon="inline-start" />
-                提交申请
+              <Button
+                type="submit"
+                className="rounded-none font-mono"
+                disabled={
+                  loading || Boolean(capEndpoint && !capToken && !skipCap)
+                }
+              >
+                <ShieldCheck data-icon="inline-start" />
+                {loading ? "注册中" : "注册"}
               </Button>
               <Button
                 type="button"
@@ -132,8 +174,8 @@ export function RegisterScreen({ onBack, onLogin }: RegisterScreenProps) {
             </CardFooter>
           </form>
           <div className="border-t px-6 py-4 text-sm text-muted-foreground">
-            <Mail data-icon="inline-start" />
-            也可直接联系 kurna2026@outlook.com 开通管理权限。
+            注册后可登录，但需要超级管理员在“管理员管理”中授予 read、admin 或
+            super 权限。
           </div>
         </Card>
       </main>

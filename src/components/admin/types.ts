@@ -7,6 +7,7 @@ import {
   Map,
   MapPinned,
   MessageSquareWarning,
+  UserCog,
 } from "lucide-react"
 
 export type PageId =
@@ -18,6 +19,7 @@ export type PageId =
   | "map-tools"
   | "ops-map"
   | "logs"
+  | "accounts"
 
 export type NavigationItem = {
   id: PageId
@@ -55,6 +57,13 @@ export const navigationGroups: Array<{
         label: "审计日志",
         description: "操作留痕",
         icon: History,
+      },
+      {
+        id: "accounts",
+        path: "/admin/accounts",
+        label: "管理员管理",
+        description: "权限分配",
+        icon: UserCog,
       },
     ],
   },
@@ -141,6 +150,10 @@ export const pageTitles: Record<
   logs: {
     title: "审计日志",
     description: "查询后台操作记录，便于回溯与排查。",
+  },
+  accounts: {
+    title: "管理员管理",
+    description: "管理管理员账号状态，并分配 super、admin、read、none 权限。",
   },
 }
 

@@ -1,20 +1,18 @@
 import { apiRequest } from "@/api/request"
 import {
-  auditLogs,
-  commentItems,
   dashboardMetrics,
-  mediaRecords,
-  mockAdminProfile,
-  officialImports,
-  pois,
   trendData,
-  ugcItems,
+  type AdminAccount,
+  type AdminPermission,
   type AdminProfile,
   type AuditLog,
   type CommentItem,
+  type DashboardDistribution,
+  type DashboardMetric,
   type MediaRecord,
   type OfficialImport,
   type Poi,
+  type TrendPoint,
   type UgcItem,
 } from "@/mocks/admin"
 
@@ -25,6 +23,15 @@ type AdminLoginResponse = {
   token: string
   adminId: number
   adminName: string
+  role?: AdminPermission
+}
+
+type BackendAdminAccount = {
+  id: number
+  adminName: string
+  role: AdminPermission
+  status: number
+  createTime?: string
 }
 
 type BackendPoi = {
@@ -86,6 +93,18 @@ type BackendMapOverview = {
   pois?: AdminMapPoi[]
   recentFavorites?: AdminMapFavorite[]
   recentComments?: AdminMapComment[]
+}
+
+type BackendDashboardStats = {
+  metrics?: Array<{
+    label: string
+    value: string
+    detail: string
+    trend: string
+  }>
+  trends?: TrendPoint[]
+  reviewDistribution?: DashboardDistribution[]
+  mediaTypeDistribution?: DashboardDistribution[]
 }
 
 export type AdminMapMedia = {
@@ -204,14 +223,16 @@ export type MapPoiSearchResult = {
 
 export type AdminSnapshot = {
   profile: AdminProfile
-  metrics: typeof dashboardMetrics
-  trends: typeof trendData
-  pois: typeof pois
-  imports: typeof officialImports
-  media: typeof mediaRecords
-  ugc: typeof ugcItems
-  comments: typeof commentItems
-  logs: typeof auditLogs
+  metrics: DashboardMetric[]
+  trends: TrendPoint[]
+  reviewDistribution: DashboardDistribution[]
+  mediaTypeDistribution: DashboardDistribution[]
+  pois: Poi[]
+  imports: OfficialImport[]
+  media: MediaRecord[]
+  ugc: UgcItem[]
+  comments: CommentItem[]
+  logs: AuditLog[]
   mapOverview: AdminMapOverview
 }
 
@@ -220,6 +241,8 @@ export type AdminLoginInput = {
   password: string
   capToken?: string
 }
+
+export type AdminRegisterInput = AdminLoginInput
 
 export type PoiPayload = {
   name: string
@@ -259,11 +282,39 @@ function normalizeReviewStatus(status?: string) {
 }
 
 function toProfile(data: AdminLoginResponse): AdminProfile {
+  const role = (data.role || "none").toUpperCase() as AdminProfile["role"]
+
   return {
     id: String(data.adminId),
     name: data.adminName,
-    role: "ADMIN",
+    role,
     email: `${data.adminName}@timecampus.local`,
+  }
+}
+
+function toAdminAccount(item: BackendAdminAccount): AdminAccount {
+  return {
+    id: String(item.id),
+    adminName: item.adminName,
+    role: item.role,
+    status: item.status === 1 ? "ENABLED" : "DISABLED",
+    createTime: item.createTime || "-",
+  }
+}
+
+function toBackendStatus(status: AdminAccount["status"]) {
+  return status === "ENABLED"
+}
+
+function toDashboardStats(data: BackendDashboardStats) {
+  return {
+    metrics: (data.metrics ?? dashboardMetrics).map((metric, index) => ({
+      ...metric,
+      icon: dashboardMetrics[index]?.icon ?? dashboardMetrics[0].icon,
+    })),
+    trends: data.trends ?? trendData,
+    reviewDistribution: data.reviewDistribution ?? [],
+    mediaTypeDistribution: data.mediaTypeDistribution ?? [],
   }
 }
 
@@ -357,10 +408,6 @@ function toLog(item: BackendLog): AuditLog {
   }
 }
 
-function withMockFallback<T>(request: Promise<T>, fallback: T) {
-  return request.catch(() => fallback)
-}
-
 export async function loginAdmin(input: AdminLoginInput) {
   if (!input.adminName || !input.password) {
     throw new Error("请输入管理员账号和密码")
@@ -382,10 +429,33 @@ export async function loginAdmin(input: AdminLoginInput) {
   }
 }
 
+export async function registerAdmin(input: AdminRegisterInput) {
+  if (!input.adminName || !input.password) {
+    throw new Error("请输入管理员账号和密码")
+  }
+  if (!input.capToken) {
+    throw new Error("请先完成人机验证")
+  }
+
+  const data = await apiRequest<AdminLoginResponse>("/admin/register", {
+    method: "POST",
+    body: input,
+    auth: false,
+  })
+  const profile = toProfile(data)
+
+  localStorage.setItem(ADMIN_TOKEN_KEY, data.token)
+  localStorage.setItem(ADMIN_PROFILE_KEY, JSON.stringify(profile))
+
+  return {
+    token: data.token,
+    profile,
+  }
+}
+
 export async function logoutAdmin() {
-  await withMockFallback(
-    apiRequest<string>("/admin/logout", { method: "POST" }),
-    "ok"
+  await apiRequest<string>("/admin/logout", { method: "POST" }).catch(
+    () => "ok"
   )
   localStorage.removeItem(ADMIN_TOKEN_KEY)
   localStorage.removeItem(ADMIN_PROFILE_KEY)
@@ -409,40 +479,29 @@ export function getStoredAdminProfile() {
 
 export async function getAdminSnapshot(): Promise<AdminSnapshot> {
   const storedProfile = getStoredAdminProfile()
-  const [overview, backendPois, media, ugc, comments, logs] = await Promise.all(
-    [
-      withMockFallback(getAdminMapOverview(), null),
-      withMockFallback(apiRequest<BackendPoi[]>("/admin/pois"), null),
-      withMockFallback(apiRequest<BackendMedia[]>("/admin/media"), null),
-      withMockFallback(
-        apiRequest<BackendMedia[]>("/admin/ugc", {
-          query: { status: "pending" },
-        }),
-        null
-      ),
-      withMockFallback(
-        apiRequest<BackendComment[]>("/admin/comments", {
-          query: { status: "pending" },
-        }),
-        null
-      ),
-      withMockFallback(
-        apiRequest<BackendLog[]>("/admin/logs", { query: { limit: 20 } }),
-        null
-      ),
-    ]
-  )
+  const [stats, overview, backendPois, media, ugc, comments, logs] =
+    await Promise.all([
+      getAdminDashboardStats(),
+      getAdminMapOverview(),
+      apiRequest<BackendPoi[]>("/admin/pois"),
+      apiRequest<BackendMedia[]>("/admin/media"),
+      apiRequest<BackendMedia[]>("/admin/ugc", {
+        query: { status: "pending" },
+      }),
+      apiRequest<BackendComment[]>("/admin/comments", {
+        query: { status: "pending" },
+      }),
+      apiRequest<BackendLog[]>("/admin/logs", { query: { limit: 20 } }),
+    ])
 
-  const adaptedPois =
-    backendPois?.map((poi) => toPoi(poi, overview ?? undefined)) ?? pois
-  const adaptedMedia =
-    media?.map((item) => toMediaRecord(item, adaptedPois)) ?? mediaRecords
-  const adaptedUgc = ugc?.map((item) => toUgc(item, adaptedPois)) ?? ugcItems
-  const adaptedComments =
-    comments?.map((item) => toComment(item, adaptedPois)) ?? commentItems
-  const adaptedLogs = logs?.map(toLog) ?? auditLogs
-  const officialMedia =
-    media?.filter((item) => item.type?.toLowerCase() === "official") ?? null
+  const adaptedPois = backendPois.map((poi) => toPoi(poi, overview))
+  const adaptedMedia = media.map((item) => toMediaRecord(item, adaptedPois))
+  const adaptedUgc = ugc.map((item) => toUgc(item, adaptedPois))
+  const adaptedComments = comments.map((item) => toComment(item, adaptedPois))
+  const adaptedLogs = logs.map(toLog)
+  const officialMedia = media.filter(
+    (item) => item.type?.toLowerCase() === "official"
+  )
   const adaptedImports: OfficialImport[] = officialMedia
     ? [
         {
@@ -466,32 +525,81 @@ export async function getAdminSnapshot(): Promise<AdminSnapshot> {
               .at(-1) || "-",
         },
       ]
-    : officialImports
+    : []
 
   return {
-    profile: storedProfile || mockAdminProfile,
-    metrics: [
-      { ...dashboardMetrics[0], value: String(adaptedPois.length) },
-      {
-        ...dashboardMetrics[1],
-        value: String(officialMedia?.length ?? adaptedImports[0]?.total ?? 0),
-      },
-      { ...dashboardMetrics[2], value: String(adaptedUgc.length) },
-      { ...dashboardMetrics[3], value: String(adaptedComments.length) },
-    ],
-    trends: trendData,
+    profile: storedProfile ?? {
+      id: "0",
+      name: "?",
+      role: "NONE",
+      email: "?",
+    },
+    metrics: stats.metrics,
+    trends: stats.trends,
+    reviewDistribution: stats.reviewDistribution,
+    mediaTypeDistribution: stats.mediaTypeDistribution,
     pois: adaptedPois,
     imports: adaptedImports,
     media: adaptedMedia,
     ugc: adaptedUgc,
     comments: adaptedComments,
     logs: adaptedLogs,
-    mapOverview: overview ?? {
+    mapOverview: overview,
+  }
+}
+
+export function getEmptyAdminSnapshot(profile: AdminProfile): AdminSnapshot {
+  return {
+    profile,
+    metrics: dashboardMetrics,
+    trends: trendData,
+    reviewDistribution: [],
+    mediaTypeDistribution: [],
+    pois: [],
+    imports: [],
+    media: [],
+    ugc: [],
+    comments: [],
+    logs: [],
+    mapOverview: {
       pois: [],
       recentFavorites: [],
       recentComments: [],
     },
   }
+}
+
+export async function getAdminDashboardStats() {
+  return toDashboardStats(
+    await apiRequest<BackendDashboardStats>("/admin/dashboard/stats")
+  )
+}
+
+export async function getAdminAccounts() {
+  return apiRequest<BackendAdminAccount[]>("/admin/accounts").then((items) =>
+    items.map(toAdminAccount)
+  )
+}
+
+export async function updateAdminRole(id: string, role: AdminPermission) {
+  return toAdminAccount(
+    await apiRequest<BackendAdminAccount>(`/admin/accounts/${id}/role`, {
+      method: "POST",
+      body: { role },
+    })
+  )
+}
+
+export async function updateAdminStatus(
+  id: string,
+  status: AdminAccount["status"]
+) {
+  return toAdminAccount(
+    await apiRequest<BackendAdminAccount>(`/admin/accounts/${id}/status`, {
+      method: "POST",
+      body: { enabled: toBackendStatus(status) },
+    })
+  )
 }
 
 export async function getAdminMapConfig() {

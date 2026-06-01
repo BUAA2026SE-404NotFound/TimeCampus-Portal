@@ -3,45 +3,12 @@ import { toast } from "sonner"
 
 import type { AdminMapPoi } from "@/api/admin"
 import { isValidPoi } from "@/features/admin/operation-map/map-poi"
-
-type TMapNamespace = {
-  Map: new (
-    container: HTMLElement,
-    options: Record<string, unknown>
-  ) => TencentMap
-  LatLng: new (lat: number, lng: number) => unknown
-  MultiMarker: new (options: Record<string, unknown>) => TencentMarkerLayer
-  MarkerStyle: new (options: Record<string, unknown>) => unknown
-  Point: new (x: number, y: number) => unknown
-}
-
-type TencentMap = {
-  setCenter: (center: unknown) => void
-  setZoom: (zoom: number) => void
-  destroy?: () => void
-}
-
-type TencentMarkerLayer = {
-  setMap?: (map: TencentMap | null) => void
-  on: (event: string, handler: (event: TencentMarkerClickEvent) => void) => void
-  off?: (event: string, handler: (event: TencentMarkerClickEvent) => void) => void
-}
-
-type TencentMarkerClickEvent = {
-  geometry?: {
-    id?: string
-    properties?: {
-      poiId?: number | string
-    }
-  }
-}
-
-declare global {
-  interface Window {
-    TMap?: TMapNamespace
-    __timeCampusTencentMapPromise?: Promise<TMapNamespace>
-  }
-}
+import {
+  loadTencentMap,
+  type TencentMap,
+  type TencentMarkerClickEvent,
+  type TencentMarkerLayer,
+} from "@/lib/tencent-map"
 
 const BUAA_CENTER = { lat: 39.981292, lng: 116.348026 }
 const ACTIVE_MARKER_FILL = "#003a70"
@@ -49,34 +16,6 @@ const ACTIVE_MARKER_STROKE = "#002b5c"
 const INACTIVE_MARKER_FILL = "#7b8794"
 const INACTIVE_MARKER_STROKE = "#5d6672"
 const MARKER_LABEL_BACKGROUND = "#f7fbff"
-
-function loadTencentMap(key: string) {
-  if (window.TMap) {
-    return Promise.resolve(window.TMap)
-  }
-
-  if (window.__timeCampusTencentMapPromise) {
-    return window.__timeCampusTencentMapPromise
-  }
-
-  window.__timeCampusTencentMapPromise = new Promise((resolve, reject) => {
-    const script = document.createElement("script")
-    script.src = `https://map.qq.com/api/gljs?v=1.exp&key=${encodeURIComponent(key)}`
-    script.async = true
-    script.onload = () => {
-      if (window.TMap) {
-        resolve(window.TMap)
-        return
-      }
-
-      reject(new Error("腾讯地图脚本加载完成但 TMap 不可用"))
-    }
-    script.onerror = () => reject(new Error("腾讯地图脚本加载失败"))
-    document.head.appendChild(script)
-  })
-
-  return window.__timeCampusTencentMapPromise
-}
 
 function markerSvg(poi: AdminMapPoi) {
   const active = poi.status === 1
@@ -136,8 +75,8 @@ export function TencentOperationMap({
             maxZoom: 19,
             control: { zoom: true, scale: true, rotation: false },
             baseMap: {
-              type: 'satellite'
-            }
+              type: "satellite",
+            },
           })
         }
 

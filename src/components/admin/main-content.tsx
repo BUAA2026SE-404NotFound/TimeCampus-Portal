@@ -1,5 +1,12 @@
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Skeleton } from "@/components/ui/skeleton"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+import { AccountsPage } from "@/pages/admin/accounts-page"
 import { DashboardPage } from "@/pages/admin/dashboard-page"
 import { ImportsPage } from "@/pages/admin/imports-page"
 import { LogsPage } from "@/pages/admin/logs-page"
@@ -28,6 +35,25 @@ export function MainContent({
     )
   }
 
+  if (snapshot.profile.role === "NONE") {
+    return (
+      <div className="flex flex-1 flex-col gap-4 p-4 font-mono sm:p-6">
+        <Card className="rounded-none shadow-none">
+          <CardHeader>
+            <CardTitle>暂无可访问内容</CardTitle>
+            <CardDescription>
+              当前管理员账号未分配 read 或 admin
+              权限，页面保持空态且不会加载地图或影像资源。
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="grid min-h-[320px] place-items-center border-t text-muted-foreground">
+            ?
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 font-mono sm:p-6">
       {activePage === "dashboard" && <DashboardPage snapshot={snapshot} />}
@@ -46,24 +72,7 @@ export function MainContent({
       {activePage === "map-tools" && <MapToolsPage />}
       {activePage === "ops-map" && <OpsMapPage snapshot={snapshot} />}
       {activePage === "logs" && <LogsPage snapshot={snapshot} />}
-
-      <Tabs defaultValue="api" className="rounded-none border bg-card p-4">
-        <TabsList className="rounded-none">
-          <TabsTrigger value="api" className="rounded-none">
-            数据说明
-          </TabsTrigger>
-          <TabsTrigger value="notice" className="rounded-none">
-            开发注意
-          </TabsTrigger>
-        </TabsList>
-        <TabsContent value="api" className="text-muted-foreground">
-          页面层通过 src/api/admin.ts 访问后端；未完成接口保留 mock 或本地 UI
-          状态。
-        </TabsContent>
-        <TabsContent value="notice" className="text-muted-foreground">
-          删除、审核、退出登录等操作会调用真实后端接口，测试时请注意数据状态变化。
-        </TabsContent>
-      </Tabs>
+      {activePage === "accounts" && <AccountsPage />}
     </div>
   )
 }
