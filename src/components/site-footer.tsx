@@ -21,7 +21,13 @@ function MiitLogo() {
       className="grid size-4 shrink-0 place-items-center"
       aria-hidden="true"
     >
-      <img className="size-full object-contain" src={ghsLogo} alt="" />
+      <img
+        className="size-full object-contain"
+        src={ghsLogo}
+        alt=""
+        loading="lazy"
+        decoding="async"
+      />
     </span>
   )
 }
