@@ -270,6 +270,40 @@ export type OfficialUploadPayload = {
   description?: string
 }
 
+export type AgentRagHit = {
+  score: number
+  reason: string
+  document: {
+    id: string
+    type: string
+    title: string
+    text: string
+    uri: string
+    metadata?: Record<string, unknown>
+  }
+}
+
+export type AgentRagSearchResult = {
+  query: string
+  usage: string
+  corpusSize: number
+  hits: AgentRagHit[]
+}
+
+export type AgentRagContextPack = {
+  task: string
+  workflow: string[]
+  retrieval: AgentRagSearchResult
+}
+
+export type AgentRagContextPackPayload = {
+  task: string
+  limit?: number
+  types?: string[]
+  poiId?: number
+  includePending?: boolean
+}
+
 function normalizeReviewStatus(status?: string) {
   switch (status?.toLowerCase()) {
     case "approved":
@@ -717,5 +751,14 @@ export async function uploadOfficialContent(payload: OfficialUploadPayload) {
       description: payload.description,
     },
     body,
+  })
+}
+
+export async function getAgentRagContextPack(
+  payload: AgentRagContextPackPayload
+) {
+  return apiRequest<AgentRagContextPack>("/admin/agent/rag/context-pack", {
+    method: "POST",
+    body: payload,
   })
 }

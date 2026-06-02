@@ -11,7 +11,11 @@ import {
 } from "lucide-react"
 import { toast } from "sonner"
 
-import type { AdminSnapshot } from "@/api/admin"
+import {
+  getAgentRagContextPack,
+  type AgentRagContextPack,
+  type AdminSnapshot,
+} from "@/api/admin"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -201,6 +205,10 @@ function buildMaintenancePlan(task: string, snapshot: AdminSnapshot): Maintenanc
 export function AiWorkbenchPage({ snapshot }: { snapshot: AdminSnapshot }) {
   const [task, setTask] = useState(DEFAULT_TASK)
   const [plan, setPlan] = useState(() => buildMaintenancePlan(DEFAULT_TASK, snapshot))
+  const [remoteContext, setRemoteContext] = useState<AgentRagContextPack | null>(
+    null
+  )
+  const [generating, setGenerating] = useState(false)
 
   const corpusStats = useMemo(
     () => [
@@ -231,9 +239,51 @@ export function AiWorkbenchPage({ snapshot }: { snapshot: AdminSnapshot }) {
     [plan, task]
   )
 
-  function handleGenerate() {
-    setPlan(buildMaintenancePlan(task, snapshot))
-    toast.success("维护任务包已更新")
+  async function handleGenerate() {
+    setGenerating(true)
+    try {
+      const context = await getAgentRagContextPack({
+        task,
+        limit: 6,
+        includePending: true,
+      })
+      setRemoteContext(context)
+      const nextPlan = buildMaintenancePlan(task, snapshot)
+      setPlan({
+        ...nextPlan,
+        retriever: "Spring AI MCP RAG / HTTP",
+        hits: context.retrieval.hits.map((hit) => ({
+          id: hit.document.id,
+          type:
+            hit.document.type === "media" || hit.document.type === "comment"
+              ? hit.document.type
+              : "poi",
+          title: hit.document.title,
+          excerpt: hit.document.text,
+          uri: hit.document.uri,
+        })),
+        quality: scoreAgentOutput({
+          citedItems: context.retrieval.hits.length,
+          plannedActions: nextPlan.steps.length,
+          destructiveActions: 0,
+          unresolvedRisks: context.retrieval.hits.length ? 0 : 2,
+          requiredFields: 4,
+          completedFields: [task, nextPlan.intent, context.retrieval.hits.length, nextPlan.mcpTools.length].filter(Boolean)
+            .length,
+        }),
+      })
+      toast.success("已读取后端 RAG context pack")
+    } catch (error) {
+      setRemoteContext(null)
+      setPlan(buildMaintenancePlan(task, snapshot))
+      toast.warning(
+        error instanceof Error
+          ? `后端 RAG 暂不可用：${error.message}`
+          : "后端 RAG 暂不可用"
+      )
+    } finally {
+      setGenerating(false)
+    }
   }
 
   async function handleCopy() {
@@ -292,9 +342,15 @@ export function AiWorkbenchPage({ snapshot }: { snapshot: AdminSnapshot }) {
                     </FieldDescription>
                   </Field>
                   <div className="flex flex-wrap gap-2">
-                    <Button className="rounded-none font-mono" onClick={handleGenerate}>
+                    <Button
+                      className="rounded-none font-mono"
+                      disabled={generating}
+                      onClick={() => {
+                        void handleGenerate()
+                      }}
+                    >
                       <ListChecks data-icon="inline-start" />
-                      生成任务包
+                      {generating ? "生成中" : "生成任务包"}
                     </Button>
                     <Button
                       variant="outline"
@@ -351,6 +407,11 @@ export function AiWorkbenchPage({ snapshot }: { snapshot: AdminSnapshot }) {
                 </div>
                 <Separator />
                 <div className="grid gap-3">
+                  {remoteContext?.workflow.map((item) => (
+                    <div key={item} className="border bg-muted/20 p-3 text-sm leading-6">
+                      {item}
+                    </div>
+                  ))}
                   {plan.hits.map((hit) => (
                     <div key={`${hit.type}-${hit.id}`} className="grid gap-2 border p-3">
                       <div className="flex flex-wrap items-center gap-2">
