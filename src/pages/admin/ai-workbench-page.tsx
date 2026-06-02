@@ -12,8 +12,8 @@ import {
 import { toast } from "sonner"
 
 import {
-  getAgentRagContextPack,
-  type AgentRagContextPack,
+  getAgentDraft,
+  type AgentDraftResult,
   type AdminSnapshot,
 } from "@/api/admin"
 import { Badge } from "@/components/ui/badge"
@@ -205,7 +205,7 @@ function buildMaintenancePlan(task: string, snapshot: AdminSnapshot): Maintenanc
 export function AiWorkbenchPage({ snapshot }: { snapshot: AdminSnapshot }) {
   const [task, setTask] = useState(DEFAULT_TASK)
   const [plan, setPlan] = useState(() => buildMaintenancePlan(DEFAULT_TASK, snapshot))
-  const [remoteContext, setRemoteContext] = useState<AgentRagContextPack | null>(
+  const [remoteDraft, setRemoteDraft] = useState<AgentDraftResult | null>(
     null
   )
   const [generating, setGenerating] = useState(false)
@@ -230,29 +230,31 @@ export function AiWorkbenchPage({ snapshot }: { snapshot: AdminSnapshot }) {
       candidateTools: plan.mcpTools,
       citedResources: plan.hits.map((hit) => hit.uri),
       quality: plan.quality,
+      draft: remoteDraft?.draft,
+      gates: remoteDraft?.gates,
       humanReview: [
         "删除操作必须二次确认",
         "影像年份、来源和版权不明确时不得自动批准",
         "坐标或地点名称变更需要人工复核",
       ],
     }),
-    [plan, task]
+    [plan, remoteDraft, task]
   )
 
   async function handleGenerate() {
     setGenerating(true)
     try {
-      const context = await getAgentRagContextPack({
+      const result = await getAgentDraft({
         task,
         limit: 6,
         includePending: true,
       })
-      setRemoteContext(context)
+      setRemoteDraft(result)
       const nextPlan = buildMaintenancePlan(task, snapshot)
       setPlan({
         ...nextPlan,
-        retriever: "Spring AI MCP RAG / HTTP",
-        hits: context.retrieval.hits.map((hit) => ({
+        retriever: `Spring AI MCP RAG / ${result.mode}`,
+        hits: result.contextPack.retrieval.hits.map((hit) => ({
           id: hit.document.id,
           type:
             hit.document.type === "media" || hit.document.type === "comment"
@@ -262,19 +264,11 @@ export function AiWorkbenchPage({ snapshot }: { snapshot: AdminSnapshot }) {
           excerpt: hit.document.text,
           uri: hit.document.uri,
         })),
-        quality: scoreAgentOutput({
-          citedItems: context.retrieval.hits.length,
-          plannedActions: nextPlan.steps.length,
-          destructiveActions: 0,
-          unresolvedRisks: context.retrieval.hits.length ? 0 : 2,
-          requiredFields: 4,
-          completedFields: [task, nextPlan.intent, context.retrieval.hits.length, nextPlan.mcpTools.length].filter(Boolean)
-            .length,
-        }),
+        quality: result.quality,
       })
-      toast.success("已读取后端 RAG context pack")
+      toast.success("已生成后端 agent 草案")
     } catch (error) {
-      setRemoteContext(null)
+      setRemoteDraft(null)
       setPlan(buildMaintenancePlan(task, snapshot))
       toast.warning(
         error instanceof Error
@@ -393,6 +387,16 @@ export function AiWorkbenchPage({ snapshot }: { snapshot: AdminSnapshot }) {
                       </div>
                     ))}
                   </div>
+                  {remoteDraft ? (
+                    <div className="grid gap-2 border bg-muted/20 p-4">
+                      <p className="text-xs text-muted-foreground">
+                        后端草案 · {remoteDraft.mode}
+                      </p>
+                      <pre className="whitespace-pre-wrap text-sm leading-6">
+                        {remoteDraft.draft}
+                      </pre>
+                    </div>
+                  ) : null}
                 </div>
               </TabsContent>
 
@@ -407,7 +411,7 @@ export function AiWorkbenchPage({ snapshot }: { snapshot: AdminSnapshot }) {
                 </div>
                 <Separator />
                 <div className="grid gap-3">
-                  {remoteContext?.workflow.map((item) => (
+                  {remoteDraft?.contextPack.workflow.map((item) => (
                     <div key={item} className="border bg-muted/20 p-3 text-sm leading-6">
                       {item}
                     </div>
@@ -444,6 +448,8 @@ export function AiWorkbenchPage({ snapshot }: { snapshot: AdminSnapshot }) {
                 <div className="grid gap-2 border bg-muted/20 p-4 text-sm leading-6 text-muted-foreground">
                   <p>最低执行线：overall ≥ 85，且 actionSafety ≥ 80。</p>
                   <p>低于执行线时，agent 只能生成草案，不应直接写入 MCP 工具。</p>
+                  {remoteDraft ? <p>后端模式：{remoteDraft.mode}</p> : null}
+                  {remoteDraft?.gates.map((gate) => <p key={gate}>{gate}</p>)}
                 </div>
               </TabsContent>
             </Tabs>

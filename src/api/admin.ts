@@ -296,6 +296,23 @@ export type AgentRagContextPack = {
   retrieval: AgentRagSearchResult
 }
 
+export type AgentQualityScore = {
+  grounding: number
+  actionSafety: number
+  completeness: number
+  citationDensity: number
+  overall: number
+}
+
+export type AgentDraftResult = {
+  task: string
+  mode: "model" | "rule" | string
+  draft: string
+  contextPack: AgentRagContextPack
+  quality: AgentQualityScore
+  gates: string[]
+}
+
 export type AgentRagContextPackPayload = {
   task: string
   limit?: number
@@ -758,6 +775,13 @@ export async function getAgentRagContextPack(
   payload: AgentRagContextPackPayload
 ) {
   return apiRequest<AgentRagContextPack>("/admin/agent/rag/context-pack", {
+    method: "POST",
+    body: payload,
+  })
+}
+
+export async function getAgentDraft(payload: AgentRagContextPackPayload) {
+  return apiRequest<AgentDraftResult>("/admin/agent/draft", {
     method: "POST",
     body: payload,
   })
