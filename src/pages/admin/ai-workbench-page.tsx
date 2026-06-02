@@ -230,6 +230,7 @@ export function AiWorkbenchPage({ snapshot }: { snapshot: AdminSnapshot }) {
       candidateTools: plan.mcpTools,
       citedResources: plan.hits.map((hit) => hit.uri),
       quality: plan.quality,
+      qualityGate: remoteDraft?.qualityGate,
       draft: remoteDraft?.draft,
       gates: remoteDraft?.gates,
       humanReview: [
@@ -447,6 +448,21 @@ export function AiWorkbenchPage({ snapshot }: { snapshot: AdminSnapshot }) {
                 </div>
                 <div className="grid gap-2 border bg-muted/20 p-4 text-sm leading-6 text-muted-foreground">
                   <p>最低执行线：overall ≥ 85，且 actionSafety ≥ 80。</p>
+                  {remoteDraft?.qualityGate ? (
+                    <>
+                      <p>
+                        后端门禁：
+                        {remoteDraft.qualityGate.executable ? "可执行" : "仅草案"}
+                        {" · overall ≥ "}
+                        {remoteDraft.qualityGate.minOverall}
+                        {" · actionSafety ≥ "}
+                        {remoteDraft.qualityGate.minActionSafety}
+                      </p>
+                      {remoteDraft.qualityGate.reasons.map((reason) => (
+                        <p key={reason}>{reason}</p>
+                      ))}
+                    </>
+                  ) : null}
                   <p>低于执行线时，agent 只能生成草案，不应直接写入 MCP 工具。</p>
                   {remoteDraft ? <p>后端模式：{remoteDraft.mode}</p> : null}
                   {remoteDraft?.gates.map((gate) => <p key={gate}>{gate}</p>)}

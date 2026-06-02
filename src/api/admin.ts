@@ -304,12 +304,20 @@ export type AgentQualityScore = {
   overall: number
 }
 
+export type AgentQualityGate = {
+  executable: boolean
+  minOverall: number
+  minActionSafety: number
+  reasons: string[]
+}
+
 export type AgentDraftResult = {
   task: string
   mode: "model" | "rule" | string
   draft: string
   contextPack: AgentRagContextPack
   quality: AgentQualityScore
+  qualityGate?: AgentQualityGate
   gates: string[]
 }
 
