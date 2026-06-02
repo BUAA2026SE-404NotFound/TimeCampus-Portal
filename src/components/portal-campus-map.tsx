@@ -165,7 +165,7 @@ export function PortalCampusMap() {
           imagePois.flatMap((poi) =>
             poi.mediaList
               .map((media) => media.year)
-              .filter((year) => Number.isFinite(year))
+              .filter((year): year is number => Number.isFinite(year))
           )
         )
       ).sort((a, b) => a - b),
@@ -212,7 +212,7 @@ export function PortalCampusMap() {
       return
     }
 
-    setSelectedYear(availableYears[availableYears.length - 1])
+    setSelectedYear(availableYears.at(-1) ?? null)
   }, [availableYears, selectedYear])
 
   useEffect(() => {

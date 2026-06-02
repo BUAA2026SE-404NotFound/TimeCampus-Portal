@@ -1,5 +1,6 @@
 import {
   BookOpenCheck,
+  Bot,
   FileUp,
   Gauge,
   History,
@@ -17,6 +18,7 @@ export type PageId =
   | "ugc"
   | "comments"
   | "map-tools"
+  | "ai-workbench"
   | "ops-map"
   | "logs"
   | "accounts"
@@ -110,6 +112,13 @@ export const navigationGroups: Array<{
         description: "地理编码",
         icon: MapPinned,
       },
+      {
+        id: "ai-workbench",
+        path: "/admin/ai-workbench",
+        label: "AI 维护台",
+        description: "MCP 任务",
+        icon: Bot,
+      },
     ],
   },
 ]
@@ -142,6 +151,10 @@ export const pageTitles: Record<
   "map-tools": {
     title: "地图工具",
     description: "通过后端封装接口提供逆地理编码与 POI 搜索。",
+  },
+  "ai-workbench": {
+    title: "AI 维护台",
+    description: "使用 MCP/RAG 任务包维护 POI、影像资料和网页文案。",
   },
   "ops-map": {
     title: "运营地图",
