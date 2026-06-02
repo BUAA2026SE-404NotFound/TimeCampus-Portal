@@ -46,6 +46,7 @@ VITE_ADMIN_REDIRECT=true
 - `/admin/ugc`：UGC 审核
 - `/admin/comments`：评论审核
 - `/admin/map-tools`：地图工具
+- `/admin/ai-workbench`：AI 维护台
 - `/admin/ops-map`：运营地图
 - `/admin/accounts`：管理员管理
 - `/admin/logs`：审计日志
@@ -56,9 +57,17 @@ VITE_ADMIN_REDIRECT=true
 
 首页使用 GSAP 和 shadcn/ui 组成项目入口、统计图表、横向影像胶片栏等轻量模块。腾讯地图不在首页初始化；首页只展示“校园卫星地图”入口卡片，点击进入 `/campus-map` 后才懒加载地图页面。
 
-`/campus-map` 页面包含地图加载时间线、POI 点击弹窗和影像预览。POI 数据当前使用 `src/data/portal-map-data.ts` 中的硬编码用户端可见点位，以避免公开首页依赖管理员 token。
+`/campus-map` 页面包含地图加载时间线、POI 点击弹窗、影像预览和游客导览 Agent。POI 数据来自后端公开接口 `GET /api/v1/portal/map/home`，公开页面不依赖管理员 token。
 
 首屏之外的图片默认使用 `loading="lazy"`；首屏 hero 图片等关键视觉资源可显式设置为 `loading="eager"`。
+
+## AI Agent
+
+管理端 `/admin/ai-workbench` 提供“后端维护 Agent”工作台，会基于当前管理快照生成 MCP 任务包，覆盖 POI 编辑、影像资料维护和网页文案编辑。任务包默认要求先调用 `timecampus_rag_context_pack`，再读取具体 MCP resource，最后执行写工具。
+
+公开端 `/campus-map` 提供“游客导览 Agent”，从 POI、影像、年代标签中生成可引用的校园步行方案。它不会调用管理端接口，也不会写入数据。
+
+Agent 输出使用统一质量评分：`grounding`、`actionSafety`、`completeness`、`citationDensity` 和 `overall`。管理写入建议的最低执行线为 `overall >= 85` 且 `actionSafety >= 80`；低于阈值时只作为草案。
 
 ## 管理员权限
 
@@ -90,6 +99,7 @@ src/
     ui/                   # shadcn/ui 组件源码
   data/                   # 首页地图硬编码 POI、统计数据等静态数据
   features/               # 复杂业务页面的局部组件
+    agents/               # 管理维护与游客导览 agent 组件、质量评分
     admin/
       map-tools/          # 地图工具结果卡片
       operation-map/      # 运营地图、POI 详情、运营活动表格
