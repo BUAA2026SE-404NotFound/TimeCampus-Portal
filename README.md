@@ -66,7 +66,7 @@ VITE_ADMIN_REDIRECT=true
 
 管理端 `/admin/ai-workbench` 提供“后端维护 Agent”工作台，会调用 `POST /api/v1/admin/agent/draft` 获取 RAG 草案，覆盖 POI 编辑、影像资料维护和网页文案编辑。任务包默认要求先检索，再读取具体 MCP resource，最后执行写工具。
 
-公开端 `/campus-map` 提供“游客导览 Agent”，从 POI、影像、年代标签中生成可引用的校园步行方案。它不会调用管理端接口，也不会写入数据。
+公开端 `/campus-map` 提供“游客导览 Agent”，从 POI、影像、年代标签中生成可引用的校园步行方案，并调用 `POST /api/v1/map/walking-route` 补充腾讯地图步行距离与耗时。它不会调用管理端接口，也不会写入数据。
 
 Agent 输出使用统一质量评分：`grounding`、`actionSafety`、`completeness`、`citationDensity` 和 `overall`。管理写入建议的最低执行线为 `overall >= 85` 且 `actionSafety >= 80`；低于阈值时只作为草案。
 

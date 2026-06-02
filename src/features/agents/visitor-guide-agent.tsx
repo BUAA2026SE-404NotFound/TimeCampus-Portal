@@ -8,7 +8,11 @@ import {
 } from "lucide-react"
 import { toast } from "sonner"
 
-import type { PublicMapPoi } from "@/api/public-map"
+import {
+  planWalkingRoute,
+  type PublicMapPoi,
+  type WalkingRoutePlan,
+} from "@/api/public-map"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -109,6 +113,33 @@ function inferMinutes(prompt: string) {
   return match ? Math.max(20, Math.min(120, Number(match[1]))) : 50
 }
 
+function formatDistance(meters?: number) {
+  if (!meters) return "-"
+  return meters >= 1000 ? `${(meters / 1000).toFixed(1)} km` : `${meters} m`
+}
+
+function formatDuration(seconds?: number) {
+  if (!seconds) return "-"
+  return `${Math.max(1, Math.round(seconds / 60))} min`
+}
+
+function routePoints(stops: GuideStop[]) {
+  return stops.map((stop) => ({
+    name: stop.poi.name,
+    lat: Number(stop.poi.latitude),
+    lng: Number(stop.poi.longitude),
+  }))
+}
+
+function stopDurationLabel(
+  routePlan: WalkingRoutePlan | null,
+  stopIndex: number,
+  fallbackMinutes: number
+) {
+  const duration = routePlan?.legs[stopIndex - 1]?.durationSeconds
+  return duration ? formatDuration(duration) : `${fallbackMinutes} min`
+}
+
 function buildGuidePlan(prompt: string, pois: PublicMapPoi[]): GuidePlan {
   const promptTerms = terms(prompt)
   const duration = inferMinutes(prompt)
@@ -155,6 +186,9 @@ export function VisitorGuideAgent({ pois }: { pois: PublicMapPoi[] }) {
   const [plan, setPlan] = useState<GuidePlan>(() =>
     buildGuidePlan(DEFAULT_PROMPT, pois)
   )
+  const [routePlan, setRoutePlan] = useState<WalkingRoutePlan | null>(null)
+  const [routeError, setRouteError] = useState("")
+  const [planning, setPlanning] = useState(false)
 
   const corpusStats = useMemo(() => {
     const mediaCount = pois.reduce(
@@ -167,10 +201,30 @@ export function VisitorGuideAgent({ pois }: { pois: PublicMapPoi[] }) {
     return { poiCount: pois.length, mediaCount, yearCount }
   }, [pois])
 
-  function handleGenerate() {
+  async function handleGenerate() {
     const nextPlan = buildGuidePlan(prompt, pois)
     setPlan(nextPlan)
-    toast.success("导览方案已更新")
+    setRoutePlan(null)
+    setRouteError("")
+
+    if (nextPlan.stops.length < 2) {
+      toast.success("导览方案已更新")
+      return
+    }
+
+    setPlanning(true)
+    try {
+      const nextRoutePlan = await planWalkingRoute(routePoints(nextPlan.stops))
+      setRoutePlan(nextRoutePlan)
+      toast.success("导览方案和步行路线已更新")
+    } catch (error) {
+      setRouteError(
+        error instanceof Error ? error.message : "腾讯步行路线规划暂不可用"
+      )
+      toast.warning("导览已生成，路线规划暂不可用")
+    } finally {
+      setPlanning(false)
+    }
   }
 
   return (
@@ -215,9 +269,15 @@ export function VisitorGuideAgent({ pois }: { pois: PublicMapPoi[] }) {
               readOnly
             />
           </Field>
-          <Button className="w-fit rounded-none font-mono" onClick={handleGenerate}>
+          <Button
+            className="w-fit rounded-none font-mono"
+            disabled={planning}
+            onClick={() => {
+              void handleGenerate()
+            }}
+          >
             <Compass data-icon="inline-start" />
-            生成导览
+            {planning ? "规划中" : "生成导览"}
           </Button>
         </FieldGroup>
 
@@ -226,7 +286,9 @@ export function VisitorGuideAgent({ pois }: { pois: PublicMapPoi[] }) {
             <div className="flex flex-wrap items-center gap-2">
               <Badge variant="outline">
                 <Route data-icon="inline-start" />
-                {plan.routeMode}
+                {routePlan
+                  ? `${formatDistance(routePlan.totalDistanceMeters)} · ${formatDuration(routePlan.totalDurationSeconds)}`
+                  : plan.routeMode}
               </Badge>
               <Badge variant="outline">
                 <MessageSquare data-icon="inline-start" />
@@ -235,6 +297,7 @@ export function VisitorGuideAgent({ pois }: { pois: PublicMapPoi[] }) {
             </div>
             <p className="text-sm leading-6 text-muted-foreground">
               {plan.narrative}
+              {routeError ? ` 路线规划：${routeError}` : ""}
             </p>
           </div>
           <Separator />
@@ -261,7 +324,7 @@ export function VisitorGuideAgent({ pois }: { pois: PublicMapPoi[] }) {
                 </div>
                 <Badge variant="secondary" className="h-fit">
                   <LocateFixed data-icon="inline-start" />
-                  {stop.minutes} min
+                  {stopDurationLabel(routePlan, index, stop.minutes)}
                 </Badge>
               </div>
             ))}
