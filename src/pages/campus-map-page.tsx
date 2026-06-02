@@ -18,13 +18,13 @@ const mapTimeline = [
   },
   {
     icon: Route,
-    title: "定位 POI",
-    description: "用户端可见点位会以影像数量标记在校园中。",
+    title: "按年代筛选",
+    description: "拖动时间滑块，查看指定年份具有影像记录的点位。",
   },
   {
     icon: MousePointerClick,
-    title: "点击查看影像",
-    description: "点击点位弹出地点详情，并在弹窗内浏览关联影像。",
+    title: "隐藏后检索",
+    description: "隐藏 POI 后点击地图，会按距离列出附近影像点位。",
   },
 ]
 
@@ -116,7 +116,7 @@ export function CampusMapPage({ onBack }: { onBack: () => void }) {
               </h1>
               <p className="max-w-3xl leading-7 text-muted-foreground">
                 地图资源在本页按需加载，点击 POI
-                后可以查看地点信息、年代标签和关联影像。
+                后可以查看地点信息、年代标签和关联影像；也可以按年代浏览或隐藏标记后查询附近点位。
               </p>
             </div>
             <Button className="w-fit rounded-none font-mono" onClick={onBack}>

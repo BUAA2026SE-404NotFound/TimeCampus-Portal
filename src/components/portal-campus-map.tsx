@@ -1,11 +1,23 @@
 import { useEffect, useMemo, useRef, useState } from "react"
-import { LocateFixed, MapPin } from "lucide-react"
+import {
+  CalendarDays,
+  Eye,
+  EyeOff,
+  LocateFixed,
+  MapPin,
+  Navigation,
+} from "lucide-react"
 
 import {
   ImagePreviewDialog,
   type ImagePreviewState,
 } from "@/components/image-preview-dialog"
 import { ProgressiveImage } from "@/components/progressive-image"
+import {
+  getPublicMapHome,
+  type PublicMapMedia,
+  type PublicMapPoi,
+} from "@/api/public-map"
 import {
   Card,
   CardContent,
@@ -25,19 +37,19 @@ import {
   loadTencentMap,
   type TMapNamespace,
   type TencentMap,
+  type TencentMapClickEvent,
   type TencentMarkerClickEvent,
   type TencentMarkerLayer,
 } from "@/lib/tencent-map"
-import {
-  hardcodedPortalPois,
-  localPortalImageForPoi,
-  type PortalPoi,
-} from "@/data/portal-map-data"
-
 const BUAA_CENTER = { lat: 39.981292, lng: 116.348026 }
 const BUAA_BOUNDS = {
   southWest: { lat: 39.9766, lng: 116.3425 },
   northEast: { lat: 39.9877, lng: 116.3562 },
+}
+const NEAREST_POI_LIMIT = 5
+
+type PortalPoi = Omit<PublicMapPoi, "mediaList"> & {
+  mediaList: PublicMapMedia[]
 }
 
 function isValidPoi(poi: PortalPoi) {
@@ -47,9 +59,58 @@ function isValidPoi(poi: PortalPoi) {
   )
 }
 
-function markerSvg(poi: PortalPoi, active: boolean) {
+function hasMedia(poi: PortalPoi) {
+  return poi.mediaList.length > 0
+}
+
+function normalizePoi(poi: PublicMapPoi): PortalPoi | null {
+  const latitude = Number(poi.latitude)
+  const longitude = Number(poi.longitude)
+  if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+    return null
+  }
+
+  return {
+    ...poi,
+    latitude,
+    longitude,
+    mediaList: poi.mediaList ?? [],
+  }
+}
+
+function mediaForYear(poi: PortalPoi, year: number | null) {
+  if (!year) {
+    return poi.mediaList
+  }
+
+  return poi.mediaList.filter((media) => media.year === year)
+}
+
+function distanceMeters(
+  from: { lat: number; lng: number },
+  to: { lat: number; lng: number }
+) {
+  const radius = 6371000
+  const lat1 = (from.lat * Math.PI) / 180
+  const lat2 = (to.lat * Math.PI) / 180
+  const dLat = ((to.lat - from.lat) * Math.PI) / 180
+  const dLng = ((to.lng - from.lng) * Math.PI) / 180
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) ** 2
+
+  return radius * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+}
+
+function formatDistance(meters: number) {
+  return meters >= 1000
+    ? `${(meters / 1000).toFixed(1)} km`
+    : `${Math.round(meters)} m`
+}
+
+function markerSvg(poi: PortalPoi, active: boolean, year: number | null) {
   const fill = active ? "#003a70" : "#0f6cae"
-  const count = String(poi.mediaList?.length ?? 0)
+  const count = String(mediaForYear(poi, year).length)
   const safeCount = count.length > 2 ? "99+" : count
   const svg = `
     <svg xmlns="http://www.w3.org/2000/svg" width="40" height="48" viewBox="0 0 40 48">
@@ -77,14 +138,57 @@ export function PortalCampusMap() {
   const mapRef = useRef<TencentMap | null>(null)
   const markerLayerRef = useRef<TencentMarkerLayer | null>(null)
   const [selectedPoiId, setSelectedPoiId] = useState<number | null>(null)
+  const [selectedYear, setSelectedYear] = useState<number | null>(null)
+  const [showAllPois, setShowAllPois] = useState(false)
+  const [hideAllPois, setHideAllPois] = useState(false)
   const [detailOpen, setDetailOpen] = useState(false)
+  const [nearestOpen, setNearestOpen] = useState(false)
+  const [nearestPois, setNearestPois] = useState<
+    { poi: PortalPoi; distance: number }[]
+  >([])
   const [mapReady, setMapReady] = useState(false)
   const [error, setError] = useState("")
+  const [poiLoading, setPoiLoading] = useState(true)
+  const [poiError, setPoiError] = useState("")
+  const [portalPois, setPortalPois] = useState<PortalPoi[]>([])
   const [preview, setPreview] = useState<ImagePreviewState | null>(null)
   const mapKey = import.meta.env.VITE_TENCENT_MAP_KEY || ""
 
-  const validPois = useMemo(() => hardcodedPortalPois.filter(isValidPoi), [])
-  const selectedPoi = validPois.find((poi) => poi.id === selectedPoiId) ?? null
+  const imagePois = useMemo(
+    () => portalPois.filter(isValidPoi).filter(hasMedia),
+    [portalPois]
+  )
+  const availableYears = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          imagePois.flatMap((poi) =>
+            poi.mediaList
+              .map((media) => media.year)
+              .filter((year) => Number.isFinite(year))
+          )
+        )
+      ).sort((a, b) => a - b),
+    [imagePois]
+  )
+  const yearIndex = selectedYear
+    ? Math.max(0, availableYears.indexOf(selectedYear))
+    : 0
+  const yearPois = useMemo(() => {
+    if (!selectedYear) {
+      return imagePois
+    }
+
+    return imagePois.filter((poi) => mediaForYear(poi, selectedYear).length)
+  }, [imagePois, selectedYear])
+  const scopedPois = showAllPois ? imagePois : yearPois
+  const displayedPois = hideAllPois ? [] : scopedPois
+  const selectedPoi = imagePois.find((poi) => poi.id === selectedPoiId) ?? null
+  const selectedMedia = selectedPoi
+    ? showAllPois
+      ? selectedPoi.mediaList
+      : mediaForYear(selectedPoi, selectedYear)
+    : []
   const selectedYears = useMemo(() => {
     if (!selectedPoi) {
       return []
@@ -99,6 +203,55 @@ export function PortalCampusMap() {
       )
     ).sort()
   }, [selectedPoi])
+
+  useEffect(() => {
+    if (!availableYears.length) {
+      return
+    }
+    if (selectedYear !== null && availableYears.includes(selectedYear)) {
+      return
+    }
+
+    setSelectedYear(availableYears[availableYears.length - 1])
+  }, [availableYears, selectedYear])
+
+  useEffect(() => {
+    let cancelled = false
+
+    setPoiLoading(true)
+    setPoiError("")
+    getPublicMapHome()
+      .then((data) => {
+        if (cancelled) {
+          return
+        }
+
+        setPortalPois(
+          data.pois
+            .map(normalizePoi)
+            .filter((poi): poi is PortalPoi => Boolean(poi))
+        )
+      })
+      .catch((apiError) => {
+        if (cancelled) {
+          return
+        }
+
+        setPortalPois([])
+        setPoiError(
+          apiError instanceof Error ? apiError.message : "公开地图数据加载失败"
+        )
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setPoiLoading(false)
+        }
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   function handleReturnCenter() {
     if (!window.TMap || !mapRef.current) {
@@ -115,12 +268,37 @@ export function PortalCampusMap() {
   }
 
   function openPoiDetail(poiId: number) {
-    if (!validPois.some((poi) => poi.id === poiId)) {
+    if (!imagePois.some((poi) => poi.id === poiId)) {
       return
     }
 
     setSelectedPoiId(poiId)
     setDetailOpen(true)
+  }
+
+  function handleMapClick(event: TencentMapClickEvent) {
+    if (!hideAllPois || !event.latLng) {
+      return
+    }
+
+    const clickPoint = {
+      lat: event.latLng.getLat(),
+      lng: event.latLng.getLng(),
+    }
+    const sourcePois = scopedPois.length ? scopedPois : imagePois
+    const nearest = sourcePois
+      .map((poi) => ({
+        poi,
+        distance: distanceMeters(clickPoint, {
+          lat: Number(poi.latitude),
+          lng: Number(poi.longitude),
+        }),
+      }))
+      .sort((a, b) => a.distance - b.distance)
+      .slice(0, NEAREST_POI_LIMIT)
+
+    setNearestPois(nearest)
+    setNearestOpen(true)
   }
 
   useEffect(() => {
@@ -174,23 +352,27 @@ export function PortalCampusMap() {
 
     markerLayerRef.current?.setMap?.(null)
 
-    if (!validPois.length) {
+    if (!displayedPois.length) {
       return
     }
 
     const TMap = window.TMap
     const styles = Object.fromEntries(
-      validPois.map((poi) => [
+      displayedPois.map((poi) => [
         `poi-${poi.id}`,
         new TMap.MarkerStyle({
           width: 40,
           height: 48,
           anchor: new TMap.Point(20, 44),
-          src: markerSvg(poi, poi.id === selectedPoi?.id),
+          src: markerSvg(
+            poi,
+            poi.id === selectedPoi?.id,
+            showAllPois ? null : selectedYear
+          ),
         }),
       ])
     )
-    const geometries = validPois.map((poi) => ({
+    const geometries = displayedPois.map((poi) => ({
       id: String(poi.id),
       styleId: `poi-${poi.id}`,
       position: new TMap.LatLng(Number(poi.latitude), Number(poi.longitude)),
@@ -201,6 +383,7 @@ export function PortalCampusMap() {
       map: mapRef.current,
       styles,
       geometries,
+      isStopPropagation: true,
     })
     const handleMarkerClick = (event: TencentMarkerClickEvent) => {
       const poiId = Number(
@@ -217,7 +400,27 @@ export function PortalCampusMap() {
       markerLayer.off?.("click", handleMarkerClick)
       markerLayer.setMap?.(null)
     }
-  }, [mapKey, mapReady, selectedPoi?.id, validPois])
+  }, [
+    displayedPois,
+    mapKey,
+    mapReady,
+    selectedPoi?.id,
+    selectedYear,
+    showAllPois,
+  ])
+
+  useEffect(() => {
+    if (!mapReady || !mapRef.current) {
+      return
+    }
+
+    const map = mapRef.current
+    map.on("click", handleMapClick)
+
+    return () => {
+      map.off?.("click", handleMapClick)
+    }
+  }, [hideAllPois, imagePois, mapReady, scopedPois])
 
   useEffect(() => {
     if (!selectedPoi || !window.TMap || !mapRef.current) {
@@ -251,10 +454,101 @@ export function PortalCampusMap() {
         <CardHeader>
           <CardTitle>校园卫星底图</CardTitle>
           <CardDescription>
-            腾讯地图卫星底图与用户端可见 POI，点击点位查看地点影像。
+            腾讯地图卫星底图与用户端可见 POI，可按年代筛选影像点位。
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="grid gap-4">
+          <div className="grid gap-3 border bg-background p-3 font-mono">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="min-w-0">
+                <div className="flex items-center gap-2 text-sm font-semibold">
+                  <CalendarDays className="size-4" />
+                  年代浏览
+                </div>
+                <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                  {poiLoading
+                    ? "正在从后端加载公开 POI 数据。"
+                    : showAllPois
+                      ? `当前显示全部年代有影像记录的 ${imagePois.length} 个 POI。`
+                      : `当前显示 ${selectedYear ?? "?"} 年有影像记录的 ${yearPois.length} 个 POI。`}
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  type="button"
+                  variant={showAllPois ? "default" : "outline"}
+                  size="sm"
+                  className="w-fit rounded-none font-mono"
+                  onClick={() => {
+                    setShowAllPois((value) => !value)
+                    setNearestOpen(false)
+                  }}
+                >
+                  <MapPin data-icon="inline-start" />
+                  {showAllPois ? "回到年代筛选" : "显示所有 POI"}
+                </Button>
+                <Button
+                  type="button"
+                  variant={hideAllPois ? "default" : "outline"}
+                  size="sm"
+                  className="w-fit rounded-none font-mono"
+                  onClick={() => {
+                    setHideAllPois((value) => !value)
+                    setNearestOpen(false)
+                  }}
+                >
+                  {hideAllPois ? (
+                    <EyeOff data-icon="inline-start" />
+                  ) : (
+                    <Eye data-icon="inline-start" />
+                  )}
+                  {hideAllPois ? "点击地图找最近 POI" : "隐藏所有 POI"}
+                </Button>
+              </div>
+            </div>
+
+            <div className="grid gap-2">
+              <input
+                type="range"
+                min={0}
+                max={Math.max(availableYears.length - 1, 0)}
+                step={1}
+                value={yearIndex}
+                disabled={showAllPois || availableYears.length <= 1}
+                className="h-2 w-full cursor-pointer accent-primary disabled:cursor-not-allowed disabled:opacity-50"
+                aria-label="选择地图影像年代"
+                onChange={(event) => {
+                  const nextYear = availableYears[Number(event.target.value)]
+                  if (nextYear) {
+                    setSelectedYear(nextYear)
+                    setNearestOpen(false)
+                  }
+                }}
+              />
+              <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+                <span>{availableYears[0] ?? "?"}</span>
+                <span className="font-semibold text-foreground">
+                  {showAllPois ? "全部" : selectedYear ?? "?"}
+                </span>
+                <span>{availableYears[availableYears.length - 1] ?? "?"}</span>
+              </div>
+            </div>
+
+            {poiError ? (
+              <div className="border border-destructive/40 bg-destructive/10 px-3 py-2 text-xs text-destructive">
+                公开地图数据加载失败：{poiError}
+              </div>
+            ) : null}
+
+            {hideAllPois ? (
+              <div className="flex items-center gap-2 border bg-muted/20 px-3 py-2 text-xs text-muted-foreground">
+                <Navigation className="size-4 shrink-0" />
+                POI 标记已隐藏，点击地图任意位置会展示
+                {showAllPois ? "全部年代" : "当前年代"}附近的影像点位。
+              </div>
+            ) : null}
+          </div>
+
           <div className="portal-map-shell relative isolate mx-auto aspect-square w-full max-w-5xl overflow-hidden border bg-muted/30">
             {mapKey ? (
               <div ref={containerRef} className="size-full" />
@@ -282,6 +576,14 @@ export function PortalCampusMap() {
                 回到北航
               </Button>
             ) : null}
+
+            {mapReady && !hideAllPois && !displayedPois.length ? (
+              <div className="absolute right-3 bottom-3 left-3 z-10 border bg-background/95 p-3 text-xs text-muted-foreground shadow-sm backdrop-blur sm:left-auto sm:max-w-xs">
+                {poiLoading
+                  ? "正在加载后端 POI 数据..."
+                  : "当前年代暂无可展示的 POI 影像，请拖动年代滑动条查看其他时间点。"}
+              </div>
+            ) : null}
           </div>
         </CardContent>
       </Card>
@@ -295,17 +597,79 @@ export function PortalCampusMap() {
               <DialogHeader>
                 <DialogTitle>{selectedPoi.name}</DialogTitle>
                 <DialogDescription>
+                  {showAllPois ? "全部年代" : `${selectedYear ?? "?"} 年`}影像 ·{" "}
                   {selectedPoi.description || "?"}
                 </DialogDescription>
               </DialogHeader>
               <PoiDetailCard
                 poi={selectedPoi}
                 years={selectedYears}
+                activeYear={selectedYear}
+                mediaList={selectedMedia}
                 onPreview={setPreview}
                 compact
               />
             </>
           ) : null}
+        </DialogContent>
+      </Dialog>
+      <Dialog open={nearestOpen} onOpenChange={setNearestOpen}>
+        <DialogContent className="max-h-[90svh] overflow-hidden rounded-none font-mono sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>附近影像点位</DialogTitle>
+            <DialogDescription>
+              {showAllPois ? "全部年代" : `${selectedYear ?? "?"} 年`}视图下，距离点击位置最近的{" "}
+              {nearestPois.length} 个 POI。
+            </DialogDescription>
+          </DialogHeader>
+          {nearestPois.length ? (
+            <div className="grid max-h-[min(62svh,34rem)] gap-3 overflow-y-auto pr-1">
+              {nearestPois.map(({ poi, distance }) => {
+                const media =
+                  (showAllPois ? poi.mediaList : mediaForYear(poi, selectedYear))[0] ??
+                  poi.mediaList[0]
+                const src = media ? mediaImageSource(poi, media) : undefined
+
+                return (
+                  <button
+                    key={poi.id}
+                    type="button"
+                    className="grid grid-cols-[84px_1fr] items-center gap-3 border p-2 text-left transition-colors hover:border-primary/70 hover:bg-accent/40"
+                    onClick={() => {
+                      setNearestOpen(false)
+                      openPoiDetail(poi.id)
+                    }}
+                  >
+                    <ProgressiveImage
+                      src={src}
+                      placeholderSrc={
+                        media ? mediaThumbnailSource(poi, media) : undefined
+                      }
+                      alt={media?.description || poi.name}
+                      className="aspect-square border"
+                    />
+                    <span className="min-w-0">
+                      <span className="flex items-center justify-between gap-3">
+                        <span className="truncate font-semibold">
+                          {poi.name}
+                        </span>
+                        <span className="shrink-0 text-xs text-muted-foreground">
+                          {formatDistance(distance)}
+                        </span>
+                      </span>
+                      <span className="mt-1 line-clamp-2 block text-sm leading-5 text-muted-foreground">
+                        {media?.year ?? "?"} · {media?.description || poi.description || "?"}
+                      </span>
+                    </span>
+                  </button>
+                )
+              })}
+            </div>
+          ) : (
+            <div className="grid min-h-28 place-items-center border bg-muted/20 text-sm text-muted-foreground">
+              当前年代暂无可匹配的影像点位
+            </div>
+          )}
         </DialogContent>
       </Dialog>
       <ImagePreviewDialog
@@ -322,22 +686,33 @@ function mediaImageSource(
   poi: PortalPoi,
   media: PortalPoi["mediaList"][number]
 ) {
-  return media.imagePath.startsWith("http")
-    ? media.imagePath
-    : localPortalImageForPoi(poi.name, media.id)
+  return media.previewUrl || media.imagePath || poi.coverPreviewUrl || null
+}
+
+function mediaThumbnailSource(
+  poi: PortalPoi,
+  media: PortalPoi["mediaList"][number]
+) {
+  return media.thumbnailUrl || poi.coverThumbnailUrl || mediaImageSource(poi, media)
 }
 
 function PoiDetailCard({
   poi,
   years,
+  activeYear,
+  mediaList,
   onPreview,
   compact = false,
 }: {
   poi: PortalPoi
   years: string[]
+  activeYear?: number | null
+  mediaList?: PortalPoi["mediaList"]
   onPreview: (preview: ImagePreviewState | null) => void
   compact?: boolean
 }) {
+  const visibleMedia = mediaList ?? poi.mediaList
+
   return (
     <div
       className={
@@ -361,7 +736,14 @@ function PoiDetailCard({
       <div className="flex flex-wrap gap-1 text-[11px] text-muted-foreground">
         {years.length ? (
           years.slice(0, 10).map((year) => (
-            <span key={year} className="border px-2 py-1">
+            <span
+              key={year}
+              className={
+                Number(year) === activeYear
+                  ? "border border-primary bg-primary px-2 py-1 text-primary-foreground"
+                  : "border px-2 py-1"
+              }
+            >
               {year}
             </span>
           ))
@@ -370,9 +752,9 @@ function PoiDetailCard({
         )}
       </div>
 
-      {poi.mediaList.length ? (
+      {visibleMedia.length ? (
         <div className="grid max-h-[min(48svh,28rem)] gap-3 overflow-y-auto pr-1">
-          {poi.mediaList.map((media) => {
+          {visibleMedia.map((media) => {
             const src = mediaImageSource(poi, media)
 
             return (
@@ -391,6 +773,7 @@ function PoiDetailCard({
               >
                 <ProgressiveImage
                   src={src}
+                  placeholderSrc={mediaThumbnailSource(poi, media)}
                   alt={media.description || poi.name}
                   className="aspect-square border"
                 />
@@ -408,7 +791,7 @@ function PoiDetailCard({
         </div>
       ) : (
         <div className="grid min-h-28 place-items-center border bg-muted/20 text-sm text-muted-foreground">
-          暂无关联影像
+          当前年代暂无关联影像
         </div>
       )}
     </div>

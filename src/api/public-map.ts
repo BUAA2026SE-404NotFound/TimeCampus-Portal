@@ -29,7 +29,7 @@ type PublicMapHome = {
 }
 
 export async function getPublicMapHome(year?: number) {
-  const data = await apiRequest<PublicMapHome>("/map/home", {
+  const data = await apiRequest<PublicMapHome>("/portal/map/home", {
     auth: false,
     query: { year },
   })

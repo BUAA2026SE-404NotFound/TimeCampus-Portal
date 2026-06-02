@@ -1,14 +1,12 @@
-import { useMemo, useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { gsap } from "gsap"
 import { useGSAP } from "@gsap/react"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { getPublicMapHome, type PublicMapPoi } from "@/api/public-map"
 import { campusHistoryItems } from "@/data/campus-history"
-import {
-  databaseMediaTimeline,
-  hardcodedPortalPois,
-} from "@/data/portal-map-data"
+import { databaseMediaTimeline } from "@/data/portal-map-data"
 
 gsap.registerPlugin(useGSAP)
 
@@ -196,6 +194,27 @@ export function PortalStatsCharts() {
   const sectionRef = useRef<HTMLElement | null>(null)
   const [pieMode, setPieMode] = useState("archive")
   const [timelineMode, setTimelineMode] = useState("archive")
+  const [databasePois, setDatabasePois] = useState<PublicMapPoi[]>([])
+
+  useEffect(() => {
+    let cancelled = false
+
+    getPublicMapHome()
+      .then((data) => {
+        if (!cancelled) {
+          setDatabasePois(data.pois)
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setDatabasePois([])
+        }
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   const zoneStats = useMemo<PieItem[]>(
     () =>
@@ -214,15 +233,15 @@ export function PortalStatsCharts() {
   )
   const dbPoiStats = useMemo<PieItem[]>(
     () =>
-      hardcodedPortalPois
+      databasePois
         .map((poi) => ({
           label: poi.name,
           buildings: 1,
-          images: poi.mediaList.length,
+          images: poi.mediaList?.length ?? 0,
         }))
         .filter((item) => item.images > 0)
         .sort((a, b) => b.images - a.images),
-    []
+    [databasePois]
   )
   const archiveTimeline = useMemo<TimelineItem[]>(() => {
     const grouped = campusHistoryItems

@@ -1,13 +1,25 @@
+export type TencentLatLng = {
+  getLat: () => number
+  getLng: () => number
+}
+
+export type TencentMapClickEvent = {
+  latLng?: TencentLatLng
+}
+
 export type TencentMap = {
   setCenter: (center: unknown) => void
   setZoom: (zoom: number) => void
   setBoundary?: (bounds: unknown) => void
   panTo?: (center: unknown) => void
+  on: (event: string, handler: (event: TencentMapClickEvent) => void) => void
+  off?: (event: string, handler: (event: TencentMapClickEvent) => void) => void
   destroy?: () => void
 }
 
 export type TencentMarkerLayer = {
   setMap?: (map: TencentMap | null) => void
+  setVisible?: (visible: boolean) => void
   on: (event: string, handler: (event: TencentMarkerClickEvent) => void) => void
   off?: (
     event: string,
@@ -30,7 +42,7 @@ export type TMapNamespace = {
     container: HTMLElement,
     options: Record<string, unknown>
   ) => TencentMap
-  LatLng: new (lat: number, lng: number) => unknown
+  LatLng: new (lat: number, lng: number) => TencentLatLng
   MultiMarker: new (options: Record<string, unknown>) => TencentMarkerLayer
   MarkerStyle: new (options: Record<string, unknown>) => unknown
   Point: new (x: number, y: number) => unknown
