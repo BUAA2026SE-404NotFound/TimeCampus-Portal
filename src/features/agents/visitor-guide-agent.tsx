@@ -124,11 +124,21 @@ function formatDuration(seconds?: number) {
 }
 
 function routePoints(stops: GuideStop[]) {
-  return stops.map((stop) => ({
-    name: stop.poi.name,
-    lat: Number(stop.poi.latitude),
-    lng: Number(stop.poi.longitude),
-  }))
+  return stops
+    .map((stop) => ({
+      name: stop.poi.name,
+      lat: Number(stop.poi.latitude),
+      lng: Number(stop.poi.longitude),
+    }))
+    .filter(
+      (point) =>
+        Number.isFinite(point.lat) &&
+        point.lat >= -90 &&
+        point.lat <= 90 &&
+        Number.isFinite(point.lng) &&
+        point.lng >= -180 &&
+        point.lng <= 180
+    )
 }
 
 function stopDurationLabel(
@@ -214,7 +224,12 @@ export function VisitorGuideAgent({ pois }: { pois: PublicMapPoi[] }) {
 
     setPlanning(true)
     try {
-      const nextRoutePlan = await planWalkingRoute(routePoints(nextPlan.stops))
+      const points = routePoints(nextPlan.stops)
+      if (points.length < 2) {
+        toast.success("导览方案已更新")
+        return
+      }
+      const nextRoutePlan = await planWalkingRoute(points)
       setRoutePlan(nextRoutePlan)
       toast.success("导览方案和步行路线已更新")
     } catch (error) {
