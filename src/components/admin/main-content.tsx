@@ -6,7 +6,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { AiWorkbenchPage } from "@/pages/admin/ai-workbench-page"
 import { AccountsPage } from "@/pages/admin/accounts-page"
 import { DashboardPage } from "@/pages/admin/dashboard-page"
 import { ImportsPage } from "@/pages/admin/imports-page"
@@ -71,7 +70,6 @@ export function MainContent({
         <CommentReviewPage items={snapshot.comments} onChanged={onChanged} />
       )}
       {activePage === "map-tools" && <MapToolsPage />}
-      {activePage === "ai-workbench" && <AiWorkbenchPage snapshot={snapshot} />}
       {activePage === "ops-map" && <OpsMapPage snapshot={snapshot} />}
       {activePage === "logs" && <LogsPage snapshot={snapshot} />}
       {activePage === "accounts" && <AccountsPage />}

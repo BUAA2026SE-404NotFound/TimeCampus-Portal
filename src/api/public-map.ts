@@ -28,29 +28,6 @@ type PublicMapHome = {
   pois?: PublicMapPoi[]
 }
 
-export type WalkingRoutePoint = {
-  name?: string
-  lat: number
-  lng: number
-}
-
-export type WalkingRouteLeg = {
-  from: WalkingRoutePoint
-  to: WalkingRoutePoint
-  distanceMeters: number
-  durationSeconds: number
-  polyline?: unknown
-  rawRoute?: Record<string, unknown>
-}
-
-export type WalkingRoutePlan = {
-  mode: string
-  provider: string
-  totalDistanceMeters: number
-  totalDurationSeconds: number
-  legs: WalkingRouteLeg[]
-}
-
 export async function getPublicMapHome(year?: number) {
   const data = await apiRequest<PublicMapHome>("/portal/map/home", {
     auth: false,
@@ -60,12 +37,4 @@ export async function getPublicMapHome(year?: number) {
   return {
     pois: data.pois ?? [],
   }
-}
-
-export async function planWalkingRoute(points: WalkingRoutePoint[]) {
-  return apiRequest<WalkingRoutePlan>("/map/walking-route", {
-    method: "POST",
-    auth: false,
-    body: { points },
-  })
 }

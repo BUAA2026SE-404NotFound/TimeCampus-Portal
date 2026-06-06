@@ -270,65 +270,6 @@ export type OfficialUploadPayload = {
   description?: string
 }
 
-export type AgentRagHit = {
-  score: number
-  reason: string
-  document: {
-    id: string
-    type: string
-    title: string
-    text: string
-    uri: string
-    metadata?: Record<string, unknown>
-  }
-}
-
-export type AgentRagSearchResult = {
-  query: string
-  usage: string
-  corpusSize: number
-  hits: AgentRagHit[]
-}
-
-export type AgentRagContextPack = {
-  task: string
-  workflow: string[]
-  retrieval: AgentRagSearchResult
-}
-
-export type AgentQualityScore = {
-  grounding: number
-  actionSafety: number
-  completeness: number
-  citationDensity: number
-  overall: number
-}
-
-export type AgentQualityGate = {
-  executable: boolean
-  minOverall: number
-  minActionSafety: number
-  reasons: string[]
-}
-
-export type AgentDraftResult = {
-  task: string
-  mode: "model" | "rule" | string
-  draft: string
-  contextPack: AgentRagContextPack
-  quality: AgentQualityScore
-  qualityGate?: AgentQualityGate
-  gates: string[]
-}
-
-export type AgentRagContextPackPayload = {
-  task: string
-  limit?: number
-  types?: string[]
-  poiId?: number
-  includePending?: boolean
-}
-
 function normalizeReviewStatus(status?: string) {
   switch (status?.toLowerCase()) {
     case "approved":
@@ -776,21 +717,5 @@ export async function uploadOfficialContent(payload: OfficialUploadPayload) {
       description: payload.description,
     },
     body,
-  })
-}
-
-export async function getAgentRagContextPack(
-  payload: AgentRagContextPackPayload
-) {
-  return apiRequest<AgentRagContextPack>("/admin/agent/rag/context-pack", {
-    method: "POST",
-    body: payload,
-  })
-}
-
-export async function getAgentDraft(payload: AgentRagContextPackPayload) {
-  return apiRequest<AgentDraftResult>("/admin/agent/draft", {
-    method: "POST",
-    body: payload,
   })
 }

@@ -1,15 +1,12 @@
-import { useEffect, useRef, useState } from "react"
+import { useRef } from "react"
 import { ArrowLeft, MousePointerClick, Radar, Route } from "lucide-react"
 import { gsap } from "gsap"
 import { useGSAP } from "@gsap/react"
 
-import { getPublicMapHome, type PublicMapPoi } from "@/api/public-map"
 import { PortalCampusMap } from "@/components/portal-campus-map"
 import { SiteFooter } from "@/components/site-footer"
 import { SiteHeader } from "@/components/site-header"
 import { Button } from "@/components/ui/button"
-import { Skeleton } from "@/components/ui/skeleton"
-import { VisitorGuideAgent } from "@/features/agents/visitor-guide-agent"
 
 gsap.registerPlugin(useGSAP)
 
@@ -33,33 +30,6 @@ const mapTimeline = [
 
 export function CampusMapPage({ onBack }: { onBack: () => void }) {
   const pageRef = useRef<HTMLDivElement | null>(null)
-  const [pois, setPois] = useState<PublicMapPoi[]>([])
-  const [agentLoading, setAgentLoading] = useState(true)
-
-  useEffect(() => {
-    let active = true
-
-    getPublicMapHome()
-      .then((data) => {
-        if (active) {
-          setPois(data.pois)
-        }
-      })
-      .catch(() => {
-        if (active) {
-          setPois([])
-        }
-      })
-      .finally(() => {
-        if (active) {
-          setAgentLoading(false)
-        }
-      })
-
-    return () => {
-      active = false
-    }
-  }, [])
 
   useGSAP(
     () => {
@@ -185,14 +155,6 @@ export function CampusMapPage({ onBack }: { onBack: () => void }) {
             <div data-map-surface>
               <PortalCampusMap />
             </div>
-          </section>
-
-          <section>
-            {agentLoading ? (
-              <Skeleton className="h-80 rounded-none" />
-            ) : (
-              <VisitorGuideAgent pois={pois} />
-            )}
           </section>
         </div>
       </main>
