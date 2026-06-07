@@ -6,7 +6,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { getPublicMapHome, type PublicMapPoi } from "@/api/public-map"
 import { campusHistoryItems } from "@/data/campus-history"
-import { databaseMediaTimeline } from "@/data/portal-map-data"
 
 gsap.registerPlugin(useGSAP)
 
@@ -260,13 +259,36 @@ export function PortalStatsCharts() {
       .sort((a, b) => Number(a.label) - Number(b.label))
   }, [])
   const dbTimeline = useMemo<TimelineItem[]>(
-    () =>
-      databaseMediaTimeline.map((item) => ({
-        label: item.date.slice(5),
-        value: item.totalCount,
-        bar: item.dailyCount,
-      })),
-    []
+    () => {
+      const grouped = databasePois
+        .flatMap((poi) => poi.mediaList ?? [])
+        .reduce(
+          (acc, media) => {
+            if (Number.isFinite(media.year)) {
+              acc[media.year as number] = (acc[media.year as number] ?? 0) + 1
+            }
+            return acc
+          },
+          {} as Record<number, number>
+        )
+
+      let totalCount = 0
+      return Object.entries(grouped)
+        .map(([year, dailyCount]) => ({
+          year: Number(year),
+          dailyCount,
+        }))
+        .sort((a, b) => a.year - b.year)
+        .map(({ year, dailyCount }) => {
+          totalCount += dailyCount
+          return {
+            label: String(year),
+            value: totalCount,
+            bar: dailyCount,
+          }
+        })
+    },
+    [databasePois]
   )
 
   const pieItems = (pieMode === "archive" ? zoneStats : dbPoiStats).slice(0, 6)

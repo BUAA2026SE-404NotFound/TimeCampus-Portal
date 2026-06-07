@@ -14,7 +14,13 @@ type RequestOptions = Omit<RequestInit, "body"> & {
 }
 
 function buildUrl(path: string, query?: RequestOptions["query"]) {
-  const url = new URL(`${API_PREFIX}${path}`, window.location.origin)
+  const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL || "").replace(
+    /\/$/,
+    ""
+  )
+  const baseUrl = apiBaseUrl || window.location.origin
+  const apiPath = apiBaseUrl ? path : `${API_PREFIX}${path}`
+  const url = new URL(apiPath, baseUrl)
 
   Object.entries(query ?? {}).forEach(([key, value]) => {
     if (value !== undefined && value !== null && value !== "") {
@@ -22,7 +28,7 @@ function buildUrl(path: string, query?: RequestOptions["query"]) {
     }
   })
 
-  return `${url.pathname}${url.search}`
+  return apiBaseUrl ? url.toString() : `${url.pathname}${url.search}`
 }
 
 export async function apiRequest<T>(
