@@ -1,0 +1,73 @@
+name: ci
+
+on:
+  push:
+    branches:
+      - "**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: portal-deploy-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    name: Build And Deploy Portal
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name != 'push' || github.event.deleted != true }}
+    env:
+      SERVER_HOST: ${{ secrets.DEPLOY_HOST }}
+      SERVER_USERNAME: ${{ secrets.DEPLOY_USERNAME || secrets.DEPLOY_USER }}
+      SERVER_PASSWORD: ${{ secrets.DEPLOY_PASSWORD }}
+      DEPLOY_BRANCH: ${{ github.ref_name }}
+
+    steps:
+      - name: Deploy on cloud server
+        if: ${{ env.SERVER_HOST != '' && env.SERVER_USERNAME != '' && env.SERVER_PASSWORD != '' }}
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ env.SERVER_HOST }}
+          username: ${{ env.SERVER_USERNAME }}
+          password: ${{ env.SERVER_PASSWORD }}
+          script: |
+            set -e
+
+            if [ -e "$HOME/TimeCampus/TimeCampus-Portal/.git" ]; then
+              REPO_DIR="$HOME/TimeCampus/TimeCampus-Portal"
+            elif [ -e "$HOME/TimeCampus-Portal/.git" ]; then
+              REPO_DIR="$HOME/TimeCampus-Portal"
+            else
+              echo "Portal repository not found on server"
+              exit 1
+            fi
+
+            APP_DIR="/var/www/timecampus/portal"
+            BACKUP_DIR="/var/www/timecampus/portal.backup.$(date +%Y%m%d%H%M%S)"
+
+            cd "$REPO_DIR"
+            git fetch origin
+            git checkout -B "${{ env.DEPLOY_BRANCH }}" "origin/${{ env.DEPLOY_BRANCH }}"
+
+            if ! command -v pnpm >/dev/null 2>&1; then
+              echo "pnpm is not installed on the server"
+              exit 1
+            fi
+
+            pnpm install --frozen-lockfile
+            pnpm build
+
+            if [ -d "$APP_DIR" ]; then
+              sudo cp -a "$APP_DIR" "$BACKUP_DIR"
+            fi
+            sudo rm -rf "$APP_DIR"
+            sudo mkdir -p "$APP_DIR"
+            sudo cp -a dist/. "$APP_DIR"/
+            sudo chown -R www-data:www-data "$APP_DIR"
+            sudo nginx -t
+            sudo systemctl reload nginx
+
+            curl -fsS https://www.timecampus.asia/ >/dev/null
+            echo "Portal deployment completed successfully"
