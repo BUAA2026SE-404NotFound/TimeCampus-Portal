@@ -25,7 +25,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Textarea } from "@/components/ui/textarea"
-import type { CommentItem, UgcItem } from "@/mocks/admin"
+import type { CommentItem, UgcItem } from "@/types/admin"
 
 function ReviewActions({
   onApprove,

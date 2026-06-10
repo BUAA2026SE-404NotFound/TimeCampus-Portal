@@ -272,21 +272,23 @@ export function PortalStatsCharts() {
           {} as Record<number, number>
         )
 
-      let totalCount = 0
       return Object.entries(grouped)
         .map(([year, dailyCount]) => ({
           year: Number(year),
           dailyCount,
         }))
         .sort((a, b) => a.year - b.year)
-        .map(({ year, dailyCount }) => {
-          totalCount += dailyCount
-          return {
-            label: String(year),
-            value: totalCount,
-            bar: dailyCount,
-          }
-        })
+        .reduce<TimelineItem[]>((items, { year, dailyCount }) => {
+          const totalCount = (items.at(-1)?.value ?? 0) + dailyCount
+          return [
+            ...items,
+            {
+              label: String(year),
+              value: totalCount,
+              bar: dailyCount,
+            },
+          ]
+        }, [])
     },
     [databasePois]
   )
@@ -295,7 +297,24 @@ export function PortalStatsCharts() {
   const pieTotal = pieItems.reduce((sum, item) => sum + item.images, 0)
   const timelineItems =
     timelineMode === "archive" ? archiveTimeline : dbTimeline
-  let startAngle = 0
+  const pieSegments = pieItems.reduce<
+    Array<{ item: PieItem; index: number; path: string; endAngle: number }>
+  >((segments, item, index) => {
+    const previous = segments.at(-1)
+    const startAngle = previous?.endAngle ?? 0
+    const angle = pieTotal ? (item.images / pieTotal) * 360 : 0
+    const endAngle = startAngle + angle
+
+    return [
+      ...segments,
+      {
+        item,
+        index,
+        path: donutPath(startAngle, endAngle),
+        endAngle,
+      },
+    ]
+  }, [])
 
   useGSAP(
     () => {
@@ -367,12 +386,7 @@ export function PortalStatsCharts() {
           >
             <circle cx="60" cy="60" r="48" fill="var(--muted)" opacity="0.5" />
             <circle cx="60" cy="60" r="30" fill="var(--card)" />
-            {pieItems.map((item, index) => {
-              const angle = pieTotal ? (item.images / pieTotal) * 360 : 0
-              const endAngle = startAngle + angle
-              const path = donutPath(startAngle, endAngle)
-              startAngle = endAngle
-              return (
+            {pieSegments.map(({ item, index, path }) => (
                 <path
                   key={`${pieMode}-${item.label}`}
                   className="portal-chart-pie cursor-pointer transition duration-200 hover:opacity-80"
@@ -381,8 +395,7 @@ export function PortalStatsCharts() {
                 >
                   <title>{`${item.label}: ${item.images} 张影像`}</title>
                 </path>
-              )
-            })}
+            ))}
             <circle cx="60" cy="60" r="30" fill="var(--card)" />
           </svg>
           <div className="grid gap-2 text-sm">

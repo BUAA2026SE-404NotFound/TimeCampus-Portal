@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useState } from "react"
 
 import { mergeClassName } from "@/lib/utils"
 
@@ -23,12 +23,9 @@ export function ProgressiveImage({
   onClick,
   sizes,
 }: ProgressiveImageProps) {
-  const [loaded, setLoaded] = useState(false)
+  const [loadedSrc, setLoadedSrc] = useState<string | null>(null)
   const lowSrc = placeholderSrc && placeholderSrc !== src ? placeholderSrc : ""
-
-  useEffect(() => {
-    setLoaded(false)
-  }, [src])
+  const loaded = Boolean(src) && loadedSrc === src
 
   return (
     <div
@@ -75,7 +72,7 @@ export function ProgressiveImage({
           loading={loading}
           decoding="async"
           sizes={sizes}
-          onLoad={() => setLoaded(true)}
+          onLoad={() => setLoadedSrc(src ?? null)}
         />
       ) : (
         <div className="grid size-full place-items-center text-sm text-muted-foreground">

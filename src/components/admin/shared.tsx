@@ -3,7 +3,7 @@ import type { ReactNode } from "react"
 import { Badge } from "@/components/ui/badge"
 import { TableCell, TableRow } from "@/components/ui/table"
 import projectLogo from "@/assets/project-logo.jpg"
-import type { Poi, PublishStatus, ReviewStatus } from "@/mocks/admin"
+import type { Poi, PublishStatus, ReviewStatus } from "@/types/admin"
 
 const statusText: Record<ReviewStatus | PublishStatus | Poi["status"], string> =
   {

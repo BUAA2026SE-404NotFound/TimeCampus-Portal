@@ -26,7 +26,7 @@ import {
   type PoiFormState,
 } from "@/features/admin/poi/poi-create-dialog"
 import { PoiTable } from "@/features/admin/poi/poi-table"
-import type { Poi } from "@/mocks/admin"
+import type { Poi } from "@/types/admin"
 
 export function PoiPage({
   pois,

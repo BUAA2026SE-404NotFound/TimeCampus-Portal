@@ -22,7 +22,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import type { AdminSnapshot } from "@/api/admin"
-import type { DashboardDistribution, TrendPoint } from "@/mocks/admin"
+import type { DashboardDistribution, TrendPoint } from "@/types/admin"
 
 gsap.registerPlugin(useGSAP)
 
@@ -86,7 +86,15 @@ function DistributionPie({
   label: string
 }) {
   const total = items.reduce((sum, item) => sum + item.value, 0)
-  let offset = 0
+  const segments = items.reduce<
+    Array<{ item: DashboardDistribution; index: number; dash: number; offset: number }>
+  >((current, item, index) => {
+    const previous = current.at(-1)
+    const offset = previous ? previous.offset + previous.dash : 0
+    const dash = total ? (item.value / total) * 263.89 : 0
+
+    return [...current, { item, index, dash, offset }]
+  }, [])
 
   if (!total) {
     return (
@@ -112,9 +120,7 @@ function DistributionPie({
           stroke="var(--muted)"
           strokeWidth="18"
         />
-        {items.map((item, index) => {
-          const dash = (item.value / total) * 263.89
-          const segment = (
+        {segments.map(({ item, index, dash, offset }) => (
             <circle
               key={item.label}
               className="dashboard-pie-segment"
@@ -129,10 +135,7 @@ function DistributionPie({
               strokeLinecap="butt"
               transform="rotate(-90 60 60)"
             />
-          )
-          offset += dash
-          return segment
-        })}
+        ))}
         <text
           x="60"
           y="56"

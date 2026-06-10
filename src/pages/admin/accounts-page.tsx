@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { RefreshCw, ShieldCheck } from "lucide-react"
 import { toast } from "sonner"
 
@@ -43,7 +43,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import type { AdminAccount, AdminPermission } from "@/mocks/admin"
+import type { AdminAccount, AdminPermission } from "@/types/admin"
 
 const roleSummaryOptions: Array<{
   value: AdminPermission
@@ -92,7 +92,7 @@ export function AccountsPage() {
     [accounts]
   )
 
-  async function loadAccounts() {
+  const loadAccounts = useCallback(async () => {
     setLoading(true)
     try {
       setAccounts(await getAdminAccounts())
@@ -101,11 +101,21 @@ export function AccountsPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
 
   useEffect(() => {
-    void loadAccounts()
-  }, [])
+    let active = true
+
+    queueMicrotask(() => {
+      if (active) {
+        void loadAccounts()
+      }
+    })
+
+    return () => {
+      active = false
+    }
+  }, [loadAccounts])
 
   function requestRoleChange(account: AdminAccount, role: AdminPermission) {
     if (account.role === role) return

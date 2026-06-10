@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/card"
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
-import type { AdminProfile } from "@/mocks/admin"
+import type { AdminProfile } from "@/types/admin"
 
 export function LoginScreen({
   onLogin,

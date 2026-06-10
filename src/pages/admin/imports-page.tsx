@@ -25,7 +25,7 @@ import {
 } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import type { AdminSnapshot } from "@/api/admin"
-import type { MediaRecord, Poi } from "@/mocks/admin"
+import type { MediaRecord, Poi } from "@/types/admin"
 
 type UploadMode = "file" | "url"
 type StatusFilter = "all" | "APPROVED" | "PENDING" | "REJECTED"

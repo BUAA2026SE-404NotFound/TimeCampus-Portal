@@ -24,7 +24,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
-import type { AdminProfile } from "@/mocks/admin"
+import type { AdminProfile } from "@/types/admin"
 
 export function AdminConsole({
   activePage,
@@ -87,32 +87,36 @@ export function AdminConsole({
       return
     }
 
-    if (profile.role === "NONE") {
-      setSnapshot(getEmptyAdminSnapshot(profile))
-      showAccessMessageOnce(
-        "当前管理员账号为 none 权限，只展示空界面；请联系超级管理员分配 read 或 admin 权限。"
-      )
-      return
-    }
-
     let active = true
 
-    getAdminSnapshot()
-      .then((nextSnapshot) => {
-        if (active) {
-          setSnapshot(nextSnapshot)
-        }
-      })
-      .catch((error) => {
+    void (async () => {
+      if (profile.role === "NONE") {
         if (active) {
           setSnapshot(getEmptyAdminSnapshot(profile))
           showAccessMessageOnce(
-            error instanceof Error
-              ? `管理端数据加载失败：${error.message}。如果当前账号为 none 权限，这是预期表现；请联系超级管理员分配 read 或 admin 权限。`
-              : "管理端数据加载失败。请检查登录状态或管理员权限。"
+            "当前管理员账号为 none 权限，只展示空界面；请联系超级管理员分配 read 或 admin 权限。"
           )
         }
-      })
+        return
+      }
+
+      try {
+        const nextSnapshot = await getAdminSnapshot()
+        if (active) {
+          setSnapshot(nextSnapshot)
+        }
+      } catch (error) {
+        if (!active) {
+          return
+        }
+        setSnapshot(getEmptyAdminSnapshot(profile))
+        showAccessMessageOnce(
+          error instanceof Error
+            ? `管理端数据加载失败：${error.message}。如果当前账号为 none 权限，这是预期表现；请联系超级管理员分配 read 或 admin 权限。`
+            : "管理端数据加载失败。请检查登录状态或管理员权限。"
+        )
+      }
+    })()
 
     return () => {
       active = false

@@ -1,9 +1,4 @@
-import {
-  BookOpenCheck,
-  FileClock,
-  Landmark,
-  MessageSquareWarning,
-} from "lucide-react"
+import type { LucideIcon } from "lucide-react"
 
 export type ReviewStatus = "PENDING" | "APPROVED" | "REJECTED"
 export type PublishStatus = "VISIBLE" | "HIDDEN"
@@ -31,7 +26,7 @@ export type DashboardMetric = {
   value: string
   detail: string
   trend: string
-  icon: typeof Landmark
+  icon: LucideIcon
 }
 
 export type TrendPoint = {
@@ -127,65 +122,3 @@ export type MapSearchResult = {
   latitude: number
   longitude: number
 }
-
-export const mockAdminProfile: AdminProfile = {
-  id: "0",
-  name: "?",
-  role: "NONE",
-  email: "?",
-}
-
-export const adminAccounts: AdminAccount[] = []
-
-export const dashboardMetrics: DashboardMetric[] = [
-  {
-    label: "POI 总数",
-    value: "?",
-    detail: "活跃 POI ? 个",
-    trend: "+0 本周",
-    icon: Landmark,
-  },
-  {
-    label: "图片内容",
-    value: "?",
-    detail: "可见内容 ? 条",
-    trend: "+0 本周",
-    icon: BookOpenCheck,
-  },
-  {
-    label: "待审核 UGC",
-    value: "?",
-    detail: "图片投稿 ? 条",
-    trend: "+0 本周",
-    icon: FileClock,
-  },
-  {
-    label: "评论待处理",
-    value: "?",
-    detail: "待审核评论 ? 条",
-    trend: "?",
-    icon: MessageSquareWarning,
-  },
-]
-
-export const trendData: TrendPoint[] = []
-
-export const pois: Poi[] = []
-
-export const officialImports: OfficialImport[] = []
-
-export const mediaRecords: MediaRecord[] = []
-
-export const ugcItems: UgcItem[] = []
-
-export const commentItems: CommentItem[] = []
-
-export const auditLogs: AuditLog[] = []
-
-export const mapSearchResults: MapSearchResult[] = pois.map((poi) => ({
-  id: poi.id,
-  name: poi.name,
-  region: poi.region,
-  latitude: poi.latitude,
-  longitude: poi.longitude,
-}))

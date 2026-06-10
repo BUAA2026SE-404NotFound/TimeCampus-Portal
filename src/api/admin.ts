@@ -1,7 +1,6 @@
 import { apiRequest } from "@/api/request"
+import { dashboardMetrics, trendData } from "@/data/admin-defaults"
 import {
-  dashboardMetrics,
-  trendData,
   type AdminAccount,
   type AdminPermission,
   type AdminProfile,
@@ -14,7 +13,7 @@ import {
   type Poi,
   type TrendPoint,
   type UgcItem,
-} from "@/mocks/admin"
+} from "@/types/admin"
 
 export const ADMIN_PROFILE_KEY = "timecampus_admin"
 export const ADMIN_TOKEN_KEY = "TimeCampus-Admin-Token"

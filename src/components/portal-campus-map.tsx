@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import {
   CalendarDays,
   Eye,
@@ -171,23 +171,33 @@ export function PortalCampusMap() {
       ).sort((a, b) => a - b),
     [imagePois]
   )
-  const yearIndex = selectedYear
-    ? Math.max(0, availableYears.indexOf(selectedYear))
+  const activeYear =
+    selectedYear !== null && availableYears.includes(selectedYear)
+      ? selectedYear
+      : availableYears.at(-1) ?? null
+  const yearIndex = activeYear
+    ? Math.max(0, availableYears.indexOf(activeYear))
     : 0
   const yearPois = useMemo(() => {
-    if (!selectedYear) {
+    if (!activeYear) {
       return imagePois
     }
 
-    return imagePois.filter((poi) => mediaForYear(poi, selectedYear).length)
-  }, [imagePois, selectedYear])
-  const scopedPois = showAllPois ? imagePois : yearPois
-  const displayedPois = hideAllPois ? [] : scopedPois
+    return imagePois.filter((poi) => mediaForYear(poi, activeYear).length)
+  }, [activeYear, imagePois])
+  const scopedPois = useMemo(
+    () => (showAllPois ? imagePois : yearPois),
+    [imagePois, showAllPois, yearPois]
+  )
+  const displayedPois = useMemo(
+    () => (hideAllPois ? [] : scopedPois),
+    [hideAllPois, scopedPois]
+  )
   const selectedPoi = imagePois.find((poi) => poi.id === selectedPoiId) ?? null
   const selectedMedia = selectedPoi
     ? showAllPois
       ? selectedPoi.mediaList
-      : mediaForYear(selectedPoi, selectedYear)
+      : mediaForYear(selectedPoi, activeYear)
     : []
   const selectedYears = useMemo(() => {
     if (!selectedPoi) {
@@ -205,21 +215,8 @@ export function PortalCampusMap() {
   }, [selectedPoi])
 
   useEffect(() => {
-    if (!availableYears.length) {
-      return
-    }
-    if (selectedYear !== null && availableYears.includes(selectedYear)) {
-      return
-    }
-
-    setSelectedYear(availableYears.at(-1) ?? null)
-  }, [availableYears, selectedYear])
-
-  useEffect(() => {
     let cancelled = false
 
-    setPoiLoading(true)
-    setPoiError("")
     getPublicMapHome()
       .then((data) => {
         if (cancelled) {
@@ -267,16 +264,16 @@ export function PortalCampusMap() {
     mapRef.current.setZoom(16)
   }
 
-  function openPoiDetail(poiId: number) {
+  const openPoiDetail = useCallback((poiId: number) => {
     if (!imagePois.some((poi) => poi.id === poiId)) {
       return
     }
 
     setSelectedPoiId(poiId)
     setDetailOpen(true)
-  }
+  }, [imagePois])
 
-  function handleMapClick(event: TencentMapClickEvent) {
+  const handleMapClick = useCallback((event: TencentMapClickEvent) => {
     if (!hideAllPois || !event.latLng) {
       return
     }
@@ -299,7 +296,7 @@ export function PortalCampusMap() {
 
     setNearestPois(nearest)
     setNearestOpen(true)
-  }
+  }, [hideAllPois, imagePois, scopedPois])
 
   useEffect(() => {
     if (!mapKey || !containerRef.current) {
@@ -367,7 +364,7 @@ export function PortalCampusMap() {
           src: markerSvg(
             poi,
             poi.id === selectedPoi?.id,
-            showAllPois ? null : selectedYear
+            showAllPois ? null : activeYear
           ),
         }),
       ])
@@ -405,8 +402,9 @@ export function PortalCampusMap() {
     mapKey,
     mapReady,
     selectedPoi?.id,
-    selectedYear,
+    activeYear,
     showAllPois,
+    openPoiDetail,
   ])
 
   useEffect(() => {
@@ -420,7 +418,7 @@ export function PortalCampusMap() {
     return () => {
       map.off?.("click", handleMapClick)
     }
-  }, [hideAllPois, imagePois, mapReady, scopedPois])
+  }, [handleMapClick, mapReady])
 
   useEffect(() => {
     if (!selectedPoi || !window.TMap || !mapRef.current) {
@@ -470,7 +468,7 @@ export function PortalCampusMap() {
                     ? "正在从后端加载公开 POI 数据。"
                     : showAllPois
                       ? `当前显示全部年代有影像记录的 ${imagePois.length} 个 POI。`
-                      : `当前显示 ${selectedYear ?? "?"} 年有影像记录的 ${yearPois.length} 个 POI。`}
+                      : `当前显示 ${activeYear ?? "?"} 年有影像记录的 ${yearPois.length} 个 POI。`}
                 </p>
               </div>
               <div className="flex flex-wrap gap-2">
@@ -528,7 +526,7 @@ export function PortalCampusMap() {
               <div className="flex items-center justify-between text-[11px] text-muted-foreground">
                 <span>{availableYears[0] ?? "?"}</span>
                 <span className="font-semibold text-foreground">
-                  {showAllPois ? "全部" : selectedYear ?? "?"}
+                  {showAllPois ? "全部" : activeYear ?? "?"}
                 </span>
                 <span>{availableYears[availableYears.length - 1] ?? "?"}</span>
               </div>
@@ -597,14 +595,14 @@ export function PortalCampusMap() {
               <DialogHeader>
                 <DialogTitle>{selectedPoi.name}</DialogTitle>
                 <DialogDescription>
-                  {showAllPois ? "全部年代" : `${selectedYear ?? "?"} 年`}影像 ·{" "}
+                  {showAllPois ? "全部年代" : `${activeYear ?? "?"} 年`}影像 ·{" "}
                   {selectedPoi.description || "?"}
                 </DialogDescription>
               </DialogHeader>
               <PoiDetailCard
                 poi={selectedPoi}
                 years={selectedYears}
-                activeYear={selectedYear}
+                activeYear={activeYear}
                 mediaList={selectedMedia}
                 onPreview={setPreview}
                 compact
@@ -618,7 +616,7 @@ export function PortalCampusMap() {
           <DialogHeader>
             <DialogTitle>附近影像点位</DialogTitle>
             <DialogDescription>
-              {showAllPois ? "全部年代" : `${selectedYear ?? "?"} 年`}视图下，距离点击位置最近的{" "}
+              {showAllPois ? "全部年代" : `${activeYear ?? "?"} 年`}视图下，距离点击位置最近的{" "}
               {nearestPois.length} 个 POI。
             </DialogDescription>
           </DialogHeader>
@@ -626,7 +624,7 @@ export function PortalCampusMap() {
             <div className="grid max-h-[min(62svh,34rem)] gap-3 overflow-y-auto pr-1">
               {nearestPois.map(({ poi, distance }) => {
                 const media =
-                  (showAllPois ? poi.mediaList : mediaForYear(poi, selectedYear))[0] ??
+                  (showAllPois ? poi.mediaList : mediaForYear(poi, activeYear))[0] ??
                   poi.mediaList[0]
                 const src = media ? mediaImageSource(poi, media) : undefined
 

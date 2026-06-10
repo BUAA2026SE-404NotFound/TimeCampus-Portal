@@ -20,7 +20,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar"
 import { mergeClassName } from "@/lib/utils"
-import type { AdminProfile } from "@/mocks/admin"
+import type { AdminProfile } from "@/types/admin"
 
 export function AdminSidebar({
   activePage,
