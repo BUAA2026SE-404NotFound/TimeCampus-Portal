@@ -27,6 +27,20 @@ const modernColor = (
   modernImages.length ? modernImages : galleryImages.slice(-18)
 ).slice(0, 18)
 
+function joinFrameMeta(parts: Array<string | number | null | undefined>) {
+  return parts
+    .map((part) => String(part ?? "").trim())
+    .filter(Boolean)
+    .join(" / ")
+}
+
+function joinFrameCaption(parts: Array<string | number | null | undefined>) {
+  return parts
+    .map((part) => String(part ?? "").trim())
+    .filter(Boolean)
+    .join(" · ")
+}
+
 export function CampusImageOrbit() {
   const containerRef = useRef<HTMLElement | null>(null)
   const [preview, setPreview] = useState<ImagePreviewState | null>(null)
@@ -35,7 +49,12 @@ export function CampusImageOrbit() {
     setPreview({
       src: image.src,
       alt: image.caption,
-      caption: `${image.zone} / ${image.year} / ${image.building} / ${image.caption}`,
+      caption: joinFrameMeta([
+        image.zone,
+        image.year,
+        image.building,
+        image.caption,
+      ]),
     })
   }
 
@@ -202,7 +221,7 @@ export function CampusImageOrbit() {
                           className="aspect-[4/3] bg-sidebar"
                         />
                         <span className="truncate text-sidebar-foreground/70">
-                          {image.year} / {image.zone}
+                          {joinFrameMeta([image.year, image.zone])}
                         </span>
                       </span>
                     </button>
@@ -244,7 +263,11 @@ export function CampusImageOrbit() {
                             {image.building}
                           </span>
                           <span className="truncate text-xs text-sidebar-foreground/66">
-                            {image.zone} · {image.year} · {image.caption}
+                            {joinFrameCaption([
+                              image.zone,
+                              image.year,
+                              image.caption,
+                            ])}
                           </span>
                         </figcaption>
                       </button>
@@ -290,7 +313,7 @@ export function CampusImageOrbit() {
                         className="aspect-[4/3]"
                       />
                       <span className="truncate text-xs">
-                        {image.year} / {image.building}
+                        {joinFrameMeta([image.year, image.building])}
                       </span>
                     </button>
                   ))}

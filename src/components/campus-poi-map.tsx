@@ -41,6 +41,7 @@ import {
   type CampusPoiMapPoi,
   type CampusPoiNearestItem,
 } from "@/components/campus-poi-map-utils"
+import { mergeClassName } from "@/lib/utils"
 
 type CampusPoiMapProps<TPoi extends CampusPoiMapPoi> = {
   mapKey: string
@@ -188,6 +189,10 @@ export function CampusPoiMap<TPoi extends CampusPoiMapPoi>({
     selectedPoiKey === null
       ? null
       : (validPois.find((poi) => campusPoiKey(poi) === selectedPoiKey) ?? null)
+  const mapShellClasses = mergeClassName(
+    "portal-map-shell relative isolate z-0 overflow-hidden",
+    mapShellClassName
+  )
 
   const setMode = useCallback(
     (nextMode: CampusPoiMapMode) => {
@@ -520,9 +525,9 @@ export function CampusPoiMap<TPoi extends CampusPoiMapPoi>({
         ) : null}
       </div>
 
-      <div className={mapShellClassName}>
+      <div className={mapShellClasses}>
         {mapKey ? (
-          <div ref={containerRef} className="size-full" />
+          <div ref={containerRef} className="relative z-0 size-full" />
         ) : (
           <div className="grid size-full place-items-center text-center text-sm text-muted-foreground">
             <span>{mapUnavailableText}</span>

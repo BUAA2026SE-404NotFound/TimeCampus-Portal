@@ -46,7 +46,7 @@ function cleanFileName(fileName: string) {
 }
 
 function parseYear(fileName: string) {
-  return fileName.match(/(?:19|20)\d{2}/)?.[0] ?? "未标注"
+  return fileName.match(/(?:19|20)\d{2}/)?.[0] ?? ""
 }
 
 function parseCode(name: string) {

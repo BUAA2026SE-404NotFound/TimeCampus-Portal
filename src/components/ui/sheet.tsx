@@ -36,7 +36,7 @@ function SheetOverlay({
     <DialogPrimitive.Overlay
       data-slot="sheet-overlay"
       className={mergeClassName(
-        "fixed inset-0 z-50 bg-transparent data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:animate-in data-[state=open]:fade-in-0",
+        "fixed inset-0 z-[1000] bg-transparent data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:animate-in data-[state=open]:fade-in-0",
         className
       )}
       {...props}
@@ -58,7 +58,7 @@ function SheetContent({
       <DialogPrimitive.Content
         data-slot="sheet-content"
         className={mergeClassName(
-          "fixed top-0 z-50 h-full w-80 max-w-[85vw] border bg-background p-6 font-mono shadow-lg transition ease-in-out data-[state=closed]:duration-300 data-[state=open]:duration-500",
+          "fixed top-0 z-[1001] h-full w-80 max-w-[85vw] border bg-background p-6 font-mono shadow-lg transition ease-in-out data-[state=closed]:duration-300 data-[state=open]:duration-500",
           side === "left" &&
             "left-0 data-[state=closed]:slide-out-to-left data-[state=open]:slide-in-from-left",
           side === "right" &&
