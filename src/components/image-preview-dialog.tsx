@@ -51,16 +51,18 @@ export function ImagePreviewDialog({
         </button>
         <button
           type="button"
-          className="grid min-h-0 cursor-zoom-out place-items-center bg-muted/20 p-3 focus:outline-none sm:p-5"
+          className="relative size-full min-h-0 min-w-0 cursor-zoom-out overflow-hidden bg-muted/20 focus:outline-none"
           aria-label="关闭影像预览"
           onClick={() => onOpenChange(false)}
         >
-          <img
-            src={image.src}
-            alt={image.alt}
-            className="max-h-full max-w-full object-contain"
-            loading="eager"
-          />
+          <span className="absolute inset-3 sm:inset-5">
+            <img
+              src={image.src}
+              alt={image.alt}
+              className="absolute inset-0 size-full object-contain"
+              loading="eager"
+            />
+          </span>
         </button>
         {image.caption ? (
           <figcaption className="truncate border-t bg-background px-4 py-3 text-xs text-muted-foreground">
