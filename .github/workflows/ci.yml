@@ -38,6 +38,7 @@ jobs:
           host: ${{ env.SERVER_HOST }}
           username: ${{ env.SERVER_USERNAME }}
           password: ${{ env.SERVER_PASSWORD }}
+          command_timeout: 30m
           script: |
             set -euo pipefail
             DEPLOY_BRANCH="${{ env.DEPLOY_BRANCH }}"
@@ -67,6 +68,9 @@ jobs:
             esac
 
             cd "$REPO_DIR"
+            if [ -n "$(git status --porcelain)" ]; then
+              git stash push -u -m "ci-deploy-backup-${{ github.run_id }}-${{ github.run_attempt }}"
+            fi
             git fetch origin "$DEPLOY_BRANCH"
             git checkout -B "$DEPLOY_BRANCH" "origin/$DEPLOY_BRANCH"
 
