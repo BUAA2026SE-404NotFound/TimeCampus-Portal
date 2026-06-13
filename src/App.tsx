@@ -47,7 +47,8 @@ function getAdminAuthBrowserPath(pathname: string) {
 
 const adminDomain = import.meta.env.VITE_ADMIN_DOMAIN || "admin.timecampus.asia"
 const portalDomain = import.meta.env.VITE_PORTAL_DOMAIN || "www.timecampus.asia"
-const adminRedirectEnabled = import.meta.env.VITE_ADMIN_REDIRECT !== "false"
+const adminRedirectDisabledForLocal =
+  import.meta.env.VITE_ADMIN_REDIRECT === "false"
 
 function isAdminHost() {
   return window.location.hostname === adminDomain
@@ -116,6 +117,8 @@ function getCanonicalPath(pathname: string, adminHost: boolean) {
 export function App() {
   const adminHost = isAdminHost()
   const localPreviewHost = isLocalPreviewHost()
+  const adminRedirectEnabled =
+    !localPreviewHost || !adminRedirectDisabledForLocal
   const canRenderAdminAuthRoutes =
     adminHost || localPreviewHost || !adminRedirectEnabled
   const shouldRedirectAdminPath =
@@ -250,14 +253,14 @@ export function App() {
       onMiniProgramDetail={() => navigate("/mini-program")}
       onCampusMap={() => navigate("/campus-map")}
       onEnterAdmin={() => {
-        if (adminHost || localPreviewHost || !adminRedirectEnabled) {
+        if (adminHost || localPreviewHost) {
           navigate("/login")
           return
         }
         window.location.href = adminUrl("/login")
       }}
       onRegisterAdmin={() => {
-        if (adminHost || localPreviewHost || !adminRedirectEnabled) {
+        if (adminHost || localPreviewHost) {
           navigate("/register")
           return
         }

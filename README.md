@@ -32,7 +32,7 @@ VITE_ADMIN_REDIRECT=true
 | `VITE_TENCENT_MAP_KEY` | 腾讯地图 JS Key，前端不得保存 SK |
 | `VITE_ADMIN_DOMAIN` | 管理端生产域名 |
 | `VITE_PORTAL_DOMAIN` | 门户生产域名，用于管理端返回首页 |
-| `VITE_ADMIN_REDIRECT` | 是否把 `/admin` 访问跳转到管理端域名；本地可设为 `false` |
+| `VITE_ADMIN_REDIRECT` | 是否把管理端访问跳转到管理端域名；本地可设为 `false` |
 
 ## 路由
 
@@ -57,6 +57,8 @@ VITE_ADMIN_REDIRECT=true
 - `/admin/map-tools`：地图工具
 
 管理端登录调用 `POST /api/v1/admin/login`，本地 token key 为 `TimeCampus-Admin-Token`。生产登录页应通过 Cap widget 获取 `capToken`，真正校验由 Backend 使用 Cap secret 完成。
+
+生产主站访问 `/admin`、`/admin/*`、`/login` 和 `/register` 时应跳转到 `admin.timecampus.asia`；`VITE_ADMIN_REDIRECT=false` 只用于本地预览。
 
 ## 目录结构
 
