@@ -18,6 +18,7 @@ import {
 import { MiniProgramDetailPage } from "@/pages/mini-program-detail-page"
 import { PortalPage } from "@/pages/portal-page"
 import { ProjectInfoDetailPage } from "@/pages/project-info-detail-page"
+import { SeedreamStudioPage } from "@/pages/seedream-studio-page"
 
 const CampusMapPage = lazy(() =>
   import("@/pages/campus-map-page").then((module) => ({
@@ -247,11 +248,16 @@ export function App() {
     )
   }
 
+  if (pathname === "/seedream-studio") {
+    return <SeedreamStudioPage onBack={() => navigate("/")} />
+  }
+
   return (
     <PortalPage
       onProjectDetail={() => navigate("/project-info")}
       onMiniProgramDetail={() => navigate("/mini-program")}
       onCampusMap={() => navigate("/campus-map")}
+      onSeedreamStudio={() => navigate("/seedream-studio")}
       onEnterAdmin={() => {
         if (adminHost || localPreviewHost) {
           navigate("/login")

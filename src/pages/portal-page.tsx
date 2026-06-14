@@ -10,6 +10,7 @@ import { ContactUsCard } from "@/components/contact-us-card"
 import { MiniProgramCard } from "@/components/mini-program-card"
 import { ProjectInfoCard } from "@/components/project-info-card"
 import { PortalStatsCharts } from "@/components/portal-stats-charts"
+import { SeedreamStudioCard } from "@/components/seedream-studio-card"
 import { SiteFooter } from "@/components/site-footer"
 import { SiteHeader } from "@/components/site-header"
 
@@ -19,12 +20,14 @@ export function PortalPage({
   onProjectDetail,
   onMiniProgramDetail,
   onCampusMap,
+  onSeedreamStudio,
   onEnterAdmin,
   onRegisterAdmin,
 }: {
   onProjectDetail: () => void
   onMiniProgramDetail: () => void
   onCampusMap: () => void
+  onSeedreamStudio: () => void
   onEnterAdmin: () => void
   onRegisterAdmin: () => void
 }) {
@@ -128,7 +131,7 @@ export function PortalPage({
           <div data-portal-visual>
             <CampusHero onExplore={onProjectDetail} />
           </div>
-          <section className="grid gap-4 lg:grid-cols-3">
+          <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             <div
               data-hover-lift
               data-portal-card
@@ -149,6 +152,13 @@ export function PortalPage({
               className="h-full will-change-transform"
             >
               <CampusMapEntryCard onOpen={onCampusMap} />
+            </div>
+            <div
+              data-hover-lift
+              data-portal-card
+              className="h-full will-change-transform"
+            >
+              <SeedreamStudioCard onOpen={onSeedreamStudio} />
             </div>
           </section>
           <div data-portal-visual>
