@@ -64,6 +64,15 @@ export function PortalPage({
             "-=0.35"
           )
           .from(
+            "[data-portal-studio]",
+            {
+              autoAlpha: 0,
+              y: 20,
+              scale: 0.99,
+            },
+            "-=0.25"
+          )
+          .from(
             "[data-portal-bottom]",
             {
               autoAlpha: 0,
@@ -131,7 +140,7 @@ export function PortalPage({
           <div data-portal-visual>
             <CampusHero onExplore={onProjectDetail} />
           </div>
-          <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <section className="grid gap-4 lg:grid-cols-3">
             <div
               data-hover-lift
               data-portal-card
@@ -153,11 +162,13 @@ export function PortalPage({
             >
               <CampusMapEntryCard onOpen={onCampusMap} />
             </div>
-            <div
-              data-hover-lift
-              data-portal-card
-              className="h-full will-change-transform"
-            >
+          </section>
+          <section
+            data-hover-lift
+            data-portal-studio
+            className="will-change-transform"
+          >
+            <div className="h-full will-change-transform">
               <SeedreamStudioCard onOpen={onSeedreamStudio} />
             </div>
           </section>
