@@ -1,8 +1,9 @@
+import { useEffect, useState } from "react"
 import { ArrowRight, Images, Sparkles, UserRound } from "lucide-react"
 
-import previewImage from "@/assets/campus-history/教学科研办公/JK101主楼/JK101主楼_1987_001.jpg"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
+import { SEEDREAM_TEMPLATE_ASSETS } from "@/data/seedream-background-templates"
 import { mergeClassName } from "@/lib/utils"
 
 type SeedreamStudioCardProps = {
@@ -14,6 +15,18 @@ export function SeedreamStudioCard({
   className,
   onOpen,
 }: SeedreamStudioCardProps) {
+  const [activeIndex, setActiveIndex] = useState(0)
+  const activeTemplate =
+    SEEDREAM_TEMPLATE_ASSETS[activeIndex % SEEDREAM_TEMPLATE_ASSETS.length]
+
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      setActiveIndex((current) => (current + 1) % SEEDREAM_TEMPLATE_ASSETS.length)
+    }, 3200)
+
+    return () => window.clearInterval(timer)
+  }, [])
+
   return (
     <Card
       id="seedream-studio"
@@ -54,18 +67,26 @@ export function SeedreamStudioCard({
       </div>
 
       <div className="relative min-h-[240px] border-t bg-muted/30 lg:border-t-0 lg:border-l">
-        <img
-          src={previewImage}
-          alt="主楼前的历史集体照"
-          className="absolute inset-0 size-full object-cover grayscale"
-          loading="lazy"
-          decoding="async"
-        />
+        {SEEDREAM_TEMPLATE_ASSETS.map((template, index) => (
+          <img
+            key={template.id}
+            src={template.imageUrl}
+            alt={template.title}
+            className={mergeClassName(
+              "absolute inset-0 size-full object-cover grayscale transition-opacity duration-700",
+              index === activeIndex ? "opacity-100" : "opacity-0"
+            )}
+            loading={index === 0 ? "eager" : "lazy"}
+            decoding="async"
+          />
+        ))}
         <div className="absolute inset-0 bg-linear-to-r from-background/10 via-transparent to-background/25" />
         <div className="absolute right-4 bottom-4 left-4 border bg-card/90 px-4 py-3">
-          <p className="text-sm font-semibold">主楼合影 · 1987</p>
+          <p className="text-sm font-semibold">
+            {activeTemplate.title} · {activeTemplate.year}
+          </p>
           <p className="mt-1 text-xs text-muted-foreground">
-            临时模板，后续可替换为正式背景
+            {activeTemplate.description}
           </p>
         </div>
       </div>

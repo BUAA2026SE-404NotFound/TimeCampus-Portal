@@ -20,7 +20,17 @@ import {
 import { SiteFooter } from "@/components/site-footer"
 import { SiteHeader } from "@/components/site-header"
 import { Button } from "@/components/ui/button"
+import {
+  getSeedreamTemplateAssetUrl,
+  SEEDREAM_TEMPLATE_ASSETS,
+} from "@/data/seedream-background-templates"
 import { mergeClassName } from "@/lib/utils"
+
+const LOCAL_SEEDREAM_BACKGROUNDS: SeedreamBackground[] =
+  SEEDREAM_TEMPLATE_ASSETS.map(({ imageUrl: previewUrl, ...template }) => ({
+    ...template,
+    previewUrl,
+  }))
 
 function resolvePreviewUrl(url: string) {
   if (/^https?:\/\//i.test(url)) {
@@ -37,6 +47,13 @@ function resolvePreviewUrl(url: string) {
 
   const origin = apiBaseUrl.replace(/\/api\/v1\/?$/, "")
   return `${origin}${url.startsWith("/") ? "" : "/"}${url}`
+}
+
+function getBackgroundPreviewSrc(background: SeedreamBackground) {
+  return (
+    getSeedreamTemplateAssetUrl(background.id) ??
+    resolvePreviewUrl(background.previewUrl)
+  )
 }
 
 export function SeedreamStudioPage({ onBack }: { onBack: () => void }) {
@@ -61,7 +78,12 @@ export function SeedreamStudioPage({ onBack }: { onBack: () => void }) {
       })
       .catch((err: unknown) => {
         if (cancelled) return
-        setError(err instanceof Error ? err.message : "背景模板加载失败")
+        setBackgrounds(LOCAL_SEEDREAM_BACKGROUNDS)
+        setSelectedBackgroundId(
+          (current) => current || LOCAL_SEEDREAM_BACKGROUNDS[0]?.id || ""
+        )
+        const message = err instanceof Error ? err.message : "背景模板加载失败"
+        setError(`历史模板接口暂时不可用，已加载本地模板：${message}`)
       })
       .finally(() => {
         if (!cancelled) setLoadingBackgrounds(false)
@@ -220,7 +242,7 @@ export function SeedreamStudioPage({ onBack }: { onBack: () => void }) {
                         >
                           <span className="relative block aspect-[4/3] bg-muted">
                             <img
-                              src={resolvePreviewUrl(background.previewUrl)}
+                              src={getBackgroundPreviewSrc(background)}
                               alt={background.title}
                               className="size-full object-cover"
                               loading="lazy"
@@ -271,7 +293,7 @@ export function SeedreamStudioPage({ onBack }: { onBack: () => void }) {
                 ) : selectedBackground ? (
                   <div className="relative size-full">
                     <img
-                      src={resolvePreviewUrl(selectedBackground.previewUrl)}
+                      src={getBackgroundPreviewSrc(selectedBackground)}
                       alt={selectedBackground.title}
                       className="size-full object-cover opacity-45 grayscale"
                       loading="lazy"
