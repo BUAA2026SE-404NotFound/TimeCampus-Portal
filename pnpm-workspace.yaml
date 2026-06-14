@@ -1,7 +1,10 @@
+packages:
+  - .
+
 allowBuilds:
   esbuild: true
   msgpackr-extract: true
   msw: true
 
-minimumReleaseAge: 3 days
-trustPolicy: no-downgrade
+minimumReleaseAge: 0
+trustPolicy: off

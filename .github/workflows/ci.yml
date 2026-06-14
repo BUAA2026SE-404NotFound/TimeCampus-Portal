@@ -1,0 +1,116 @@
+name: ci
+
+on:
+  push:
+    branches:
+      - "**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: portal-deploy-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    name: Build And Deploy Portal On Server
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name != 'push' || github.event.deleted != true }}
+    env:
+      SERVER_HOST: ${{ secrets.DEPLOY_HOST }}
+      SERVER_USERNAME: ${{ secrets.DEPLOY_USERNAME || secrets.DEPLOY_USER }}
+      SERVER_PASSWORD: ${{ secrets.DEPLOY_PASSWORD }}
+      PORTAL_REPO_DIR: ${{ secrets.PORTAL_REPO_DIR }}
+      DEPLOY_BRANCH: ${{ github.ref_name }}
+      VITE_TENCENT_MAP_KEY: ${{ secrets.VITE_TENCENT_MAP_KEY || secrets.TENCENT_MAP_KEY || 'OM3BZ-JN3W5-XHPI3-IFVNF-57YME-TDBB4' }}
+      VITE_CAP_API_ENDPOINT: ${{ secrets.VITE_CAP_API_ENDPOINT || 'https://cap.timecampus.asia/2030d4d5e7/' }}
+      VITE_SKIP_CAPTCHA: "false"
+      VITE_ADMIN_REDIRECT: "true"
+      VITE_ADMIN_DOMAIN: admin.timecampus.asia
+
+    steps:
+      - name: Build and deploy on cloud server
+        if: ${{ env.SERVER_HOST != '' && env.SERVER_USERNAME != '' && env.SERVER_PASSWORD != '' }}
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ env.SERVER_HOST }}
+          username: ${{ env.SERVER_USERNAME }}
+          password: ${{ env.SERVER_PASSWORD }}
+          command_timeout: 30m
+          script: |
+            set -euo pipefail
+            DEPLOY_BRANCH="${{ env.DEPLOY_BRANCH }}"
+            PORTAL_REPO_DIR="${{ env.PORTAL_REPO_DIR }}"
+            APP_DIR="$HOME/app/dist"
+            BACKUP_DIR="$HOME/app/backup"
+            RELEASE_DIR="$HOME/app/dist.release-${{ github.run_id }}-${{ github.run_attempt }}"
+
+            if [ -n "$PORTAL_REPO_DIR" ] && [ -e "$PORTAL_REPO_DIR/.git" ]; then
+              REPO_DIR="$PORTAL_REPO_DIR"
+            elif [ -e "$HOME/TimeCampus/TimeCampus-Portal/.git" ]; then
+              REPO_DIR="$HOME/TimeCampus/TimeCampus-Portal"
+            elif [ -e "$HOME/TimeCampus-Portal/.git" ]; then
+              REPO_DIR="$HOME/TimeCampus-Portal"
+            else
+              echo "Portal repository not found on server"
+              exit 1
+            fi
+
+            case "$APP_DIR" in
+              "$HOME"/app/dist) ;;
+              *) echo "Refusing to deploy outside ~/app/dist"; exit 1 ;;
+            esac
+            case "$RELEASE_DIR" in
+              "$HOME"/app/dist.release-*) ;;
+              *) echo "Refusing to use unexpected release directory"; exit 1 ;;
+            esac
+
+            cd "$REPO_DIR"
+            if [ -n "$(git status --porcelain)" ]; then
+              git stash push -u -m "ci-deploy-backup-${{ github.run_id }}-${{ github.run_attempt }}"
+            fi
+            git fetch origin "$DEPLOY_BRANCH"
+            git checkout -B "$DEPLOY_BRANCH" "origin/$DEPLOY_BRANCH"
+
+            if ! command -v pnpm >/dev/null 2>&1; then
+              if command -v corepack >/dev/null 2>&1; then
+                corepack enable
+              fi
+            fi
+            if ! command -v pnpm >/dev/null 2>&1; then
+              echo "pnpm is not installed on the server"
+              exit 1
+            fi
+
+            export VITE_TENCENT_MAP_KEY="${{ env.VITE_TENCENT_MAP_KEY }}"
+            export VITE_CAP_API_ENDPOINT="${{ env.VITE_CAP_API_ENDPOINT }}"
+            export VITE_SKIP_CAPTCHA="${{ env.VITE_SKIP_CAPTCHA }}"
+            export VITE_ADMIN_REDIRECT="${{ env.VITE_ADMIN_REDIRECT }}"
+            export VITE_ADMIN_DOMAIN="${{ env.VITE_ADMIN_DOMAIN }}"
+
+            pnpm install --frozen-lockfile
+            pnpm run lint
+            pnpm run typecheck
+            pnpm run build
+
+            mkdir -p "$RELEASE_DIR" "$BACKUP_DIR"
+            cp -a "$REPO_DIR/dist/." "$RELEASE_DIR"/
+
+            if [ -d "$APP_DIR" ]; then
+              cp -a "$APP_DIR" "$BACKUP_DIR/dist-$(date +%Y%m%d%H%M%S)"
+            fi
+
+            rm -rf "$APP_DIR"
+            mv "$RELEASE_DIR" "$APP_DIR"
+            chmod -R a+rX "$APP_DIR"
+
+            sudo nginx -t
+            sudo systemctl reload nginx
+
+            curl -fsS https://www.timecampus.asia/ >/dev/null
+            curl -fsSI https://www.timecampus.asia/admin | grep -i "location: https://admin.timecampus.asia/" >/dev/null
+            curl -fsSI https://www.timecampus.asia/login | grep -i "location: https://admin.timecampus.asia/login" >/dev/null
+            curl -fsSI https://www.timecampus.asia/register | grep -i "location: https://admin.timecampus.asia/register" >/dev/null
+            echo "Portal deployment completed successfully"

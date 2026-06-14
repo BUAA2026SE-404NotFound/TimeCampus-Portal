@@ -15,20 +15,18 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import {
-  Field,
-  FieldGroup,
-  FieldLabel,
-} from "@/components/ui/field"
+import { Field, FieldGroup, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
-import type { AdminProfile } from "@/mocks/admin"
+import type { AdminProfile } from "@/types/admin"
 
 export function LoginScreen({
   onLogin,
   onBack,
+  onRegister,
 }: {
   onLogin: (profile: AdminProfile) => void
   onBack?: () => void
+  onRegister?: () => void
 }) {
   const [adminName, setAdminName] = useState("admin")
   const [password, setPassword] = useState("123456")
@@ -135,14 +133,26 @@ export function LoginScreen({
               </FieldGroup>
             </CardContent>
             <CardFooter className="border-t bg-muted/30">
-              <Button
-                type="submit"
-                className="w-full rounded-none font-mono"
-                disabled={loading || Boolean(capEndpoint && !capToken && !skipCap)}
-              >
-                <ShieldCheck data-icon="inline-start" />
-                {loading ? "登录中" : "登录"}
-              </Button>
+              <div className="grid w-full gap-2 sm:grid-cols-2">
+                <Button
+                  type="submit"
+                  className="rounded-none font-mono"
+                  disabled={
+                    loading || Boolean(capEndpoint && !capToken && !skipCap)
+                  }
+                >
+                  <ShieldCheck data-icon="inline-start" />
+                  {loading ? "登录中" : "登录"}
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="rounded-none font-mono"
+                  onClick={onRegister}
+                >
+                  注册账号
+                </Button>
+              </div>
             </CardFooter>
           </form>
         </Card>

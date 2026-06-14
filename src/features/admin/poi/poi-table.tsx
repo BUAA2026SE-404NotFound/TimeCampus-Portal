@@ -22,7 +22,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import type { Poi } from "@/mocks/admin"
+import type { Poi } from "@/types/admin"
 
 export function PoiTable({
   pois,

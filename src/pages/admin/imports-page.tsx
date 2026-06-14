@@ -1,10 +1,4 @@
-import {
-  type CSSProperties,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react"
+import { type CSSProperties, useEffect, useMemo, useRef, useState } from "react"
 import { ImageOff, ImageUp, Link, Search } from "lucide-react"
 import { toast } from "sonner"
 
@@ -31,7 +25,7 @@ import {
 } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import type { AdminSnapshot } from "@/api/admin"
-import type { MediaRecord, Poi } from "@/mocks/admin"
+import type { MediaRecord, Poi } from "@/types/admin"
 
 type UploadMode = "file" | "url"
 type StatusFilter = "all" | "APPROVED" | "PENDING" | "REJECTED"
@@ -79,6 +73,7 @@ function MediaThumb({ item }: { item: MediaRecord }) {
         alt={item.description || item.poiName}
         className="size-full object-cover"
         loading="lazy"
+        decoding="async"
       />
     </div>
   )
@@ -94,6 +89,8 @@ function DetailImage({ item }: { item: MediaRecord }) {
           src={src}
           alt={item.description || item.poiName}
           className="size-full object-contain"
+          loading="lazy"
+          decoding="async"
         />
       ) : (
         <ImageOff className="size-8 text-muted-foreground" />
@@ -507,6 +504,8 @@ export function ImportsPage({
                       src={previewUrl}
                       alt={uploadFile.name}
                       className="size-full object-contain"
+                      loading="lazy"
+                      decoding="async"
                     />
                   ) : (
                     <span className="text-sm text-muted-foreground">

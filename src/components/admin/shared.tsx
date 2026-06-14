@@ -3,7 +3,7 @@ import type { ReactNode } from "react"
 import { Badge } from "@/components/ui/badge"
 import { TableCell, TableRow } from "@/components/ui/table"
 import projectLogo from "@/assets/project-logo.jpg"
-import type { Poi, PublishStatus, ReviewStatus } from "@/mocks/admin"
+import type { Poi, PublishStatus, ReviewStatus } from "@/types/admin"
 
 const statusText: Record<ReviewStatus | PublishStatus | Poi["status"], string> =
   {
@@ -23,6 +23,8 @@ export function AdminLogo() {
         className="max-h-7 max-w-7 object-contain"
         src={projectLogo}
         alt="时光航迹 Logo"
+        loading="eager"
+        decoding="async"
       />
     </div>
   )

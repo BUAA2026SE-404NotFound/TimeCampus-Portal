@@ -6,7 +6,13 @@ import type {
 } from "@/api/admin"
 import { StatusBadge } from "@/components/admin/shared"
 import { Badge } from "@/components/ui/badge"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
   commentContent,
@@ -17,7 +23,11 @@ import {
   userName,
 } from "@/features/admin/operation-map/map-text"
 
-export function PoiDetailPanel({ selectedPoi }: { selectedPoi: AdminMapPoi | null }) {
+export function PoiDetailPanel({
+  selectedPoi,
+}: {
+  selectedPoi: AdminMapPoi | null
+}) {
   if (!selectedPoi) {
     return (
       <Card className="min-h-140 rounded-none shadow-none">
@@ -38,7 +48,9 @@ export function PoiDetailPanel({ selectedPoi }: { selectedPoi: AdminMapPoi | nul
               {poiDescription(selectedPoi)}
             </CardDescription>
           </div>
-          <StatusBadge status={selectedPoi.status === 1 ? "ACTIVE" : "INACTIVE"} />
+          <StatusBadge
+            status={selectedPoi.status === 1 ? "ACTIVE" : "INACTIVE"}
+          />
         </div>
       </CardHeader>
       <CardContent>
@@ -136,7 +148,9 @@ function PanelIntro({
 
 function MediaList({ items }: { items?: AdminMapMedia[] }) {
   if (!items?.length) {
-    return <p className="py-8 text-center text-sm text-muted-foreground">暂无影像</p>
+    return (
+      <p className="py-8 text-center text-sm text-muted-foreground">暂无影像</p>
+    )
   }
 
   return (
@@ -151,6 +165,8 @@ function MediaList({ items }: { items?: AdminMapMedia[] }) {
               className="h-16 w-24 object-cover"
               src={media.thumbnailUrl || media.previewUrl || media.imagePath}
               alt={mediaDescription(media)}
+              loading="lazy"
+              decoding="async"
             />
           ) : (
             <div className="h-16 w-24 bg-muted" />
@@ -174,7 +190,9 @@ function MediaList({ items }: { items?: AdminMapMedia[] }) {
 
 function FavoriteList({ items }: { items?: AdminMapFavorite[] }) {
   if (!items?.length) {
-    return <p className="py-8 text-center text-sm text-muted-foreground">暂无收藏</p>
+    return (
+      <p className="py-8 text-center text-sm text-muted-foreground">暂无收藏</p>
+    )
   }
 
   return (
@@ -196,7 +214,9 @@ function FavoriteList({ items }: { items?: AdminMapFavorite[] }) {
 
 function CommentList({ items }: { items?: AdminMapComment[] }) {
   if (!items?.length) {
-    return <p className="py-8 text-center text-sm text-muted-foreground">暂无评论</p>
+    return (
+      <p className="py-8 text-center text-sm text-muted-foreground">暂无评论</p>
+    )
   }
 
   return (

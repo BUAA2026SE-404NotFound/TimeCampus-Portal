@@ -36,6 +36,7 @@ export function CapVerification({
   onValueChange,
   resetSignal,
   skip,
+  actionLabel = "登录",
 }: {
   endpoint?: string
   value: string
@@ -43,6 +44,7 @@ export function CapVerification({
   resetSignal?: number
   /** 本地开发时跳过人机验证 */
   skip?: boolean
+  actionLabel?: string
 }) {
   const widgetRef = useRef<CapWidget | null>(null)
   const closeTimerRef = useRef<number | null>(null)
@@ -175,6 +177,8 @@ export function CapVerification({
               alt=""
               className="size-4 object-contain"
               aria-hidden="true"
+              loading="eager"
+              decoding="async"
             />
             {value ? "人机验证已通过" : "点击完成人机验证"}
           </Button>
@@ -182,7 +186,9 @@ export function CapVerification({
             role="presentation"
             className={mergeClassName(
               "fixed inset-0 z-50 grid place-items-center px-4 transition-opacity",
-              open ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
+              open
+                ? "pointer-events-auto opacity-100"
+                : "pointer-events-none opacity-0"
             )}
             onClick={(event) => {
               if (event.target === event.currentTarget && !value) {
@@ -232,11 +238,11 @@ export function CapVerification({
       <FieldDescription>
         {error ||
           (value
-            ? "已通过验证，请点击登录按钮"
+            ? `已通过验证，请点击${actionLabel}按钮`
             : endpoint
               ? progress > 0
                 ? `验证进度 ${progress}%`
-                : "验证通过后才能提交登录。"
+                : `验证通过后才能提交${actionLabel}。`
               : "部署时请配置 VITE_CAP_API_ENDPOINT。")}
       </FieldDescription>
     </Field>
