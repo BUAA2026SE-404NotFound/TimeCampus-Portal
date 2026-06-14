@@ -16,7 +16,9 @@ import {
   type PageId,
 } from "@/components/admin/types"
 import { MiniProgramDetailPage } from "@/pages/mini-program-detail-page"
+import { ContentGuidelinesPage } from "@/pages/content-guidelines-page"
 import { PortalPage } from "@/pages/portal-page"
+import { PrivacySecurityPage } from "@/pages/privacy-security-page"
 import { ProjectInfoDetailPage } from "@/pages/project-info-detail-page"
 import { SeedreamStudioPage } from "@/pages/seedream-studio-page"
 
@@ -250,6 +252,14 @@ export function App() {
 
   if (pathname === "/seedream-studio") {
     return <SeedreamStudioPage onBack={() => navigate("/")} />
+  }
+
+  if (pathname === "/privacy-security") {
+    return <PrivacySecurityPage onBack={() => navigate("/seedream-studio")} />
+  }
+
+  if (pathname === "/content-guidelines") {
+    return <ContentGuidelinesPage onBack={() => navigate("/seedream-studio")} />
   }
 
   return (

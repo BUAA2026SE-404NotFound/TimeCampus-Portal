@@ -36,6 +36,7 @@ export function CapVerification({
   onValueChange,
   resetSignal,
   skip,
+  actionLabel = "登录",
 }: {
   endpoint?: string
   value: string
@@ -43,6 +44,7 @@ export function CapVerification({
   resetSignal?: number
   /** 本地开发时跳过人机验证 */
   skip?: boolean
+  actionLabel?: string
 }) {
   const widgetRef = useRef<CapWidget | null>(null)
   const closeTimerRef = useRef<number | null>(null)
@@ -236,11 +238,11 @@ export function CapVerification({
       <FieldDescription>
         {error ||
           (value
-            ? "已通过验证，请点击登录按钮"
+            ? `已通过验证，请点击${actionLabel}按钮`
             : endpoint
               ? progress > 0
                 ? `验证进度 ${progress}%`
-                : "验证通过后才能提交登录。"
+                : `验证通过后才能提交${actionLabel}。`
               : "部署时请配置 VITE_CAP_API_ENDPOINT。")}
       </FieldDescription>
     </Field>

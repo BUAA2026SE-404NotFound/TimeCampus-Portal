@@ -21,10 +21,15 @@ export function getSeedreamBackgrounds() {
   })
 }
 
-export function generateSeedreamImage(file: File, backgroundId: string) {
+export function generateSeedreamImage(
+  file: File,
+  backgroundId: string,
+  capToken: string
+) {
   const formData = new FormData()
   formData.append("file", file)
   formData.append("backgroundId", backgroundId)
+  formData.append("capToken", capToken)
 
   return apiRequest<SeedreamGenerationResult>("/portal/seedream/generations", {
     method: "POST",

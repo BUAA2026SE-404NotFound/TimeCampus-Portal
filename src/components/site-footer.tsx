@@ -1,6 +1,13 @@
 import ghsLogo from "@/assets/ghs.png"
 
-const footerLinks = ["隐私与安全", "用户内容规范", "开发团队联系"]
+const footerLinks = [
+  { label: "隐私与安全", href: "/privacy-security" },
+  { label: "用户内容规范", href: "/content-guidelines" },
+  {
+    label: "开发团队联系",
+    href: "https://github.com/BUAA2026SE-404NotFound",
+  },
+]
 
 function GithubLogo() {
   return (
@@ -38,7 +45,15 @@ export function SiteFooter() {
       <div className="mx-auto grid w-full max-w-6xl gap-4 px-4 py-6 sm:px-6">
         <div className="flex flex-wrap gap-x-5 gap-y-2 text-sidebar-foreground/75">
           {footerLinks.map((item) => (
-            <span key={item}>{item}</span>
+            <a
+              key={item.href}
+              href={item.href}
+              className="hover:text-sidebar-foreground"
+              target={item.href.startsWith("http") ? "_blank" : undefined}
+              rel={item.href.startsWith("http") ? "noreferrer" : undefined}
+            >
+              {item.label}
+            </a>
           ))}
         </div>
         <p>© 2026 北航敏捷开发软件工程</p>

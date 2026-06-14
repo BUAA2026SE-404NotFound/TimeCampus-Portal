@@ -6,6 +6,7 @@ import {
   ImageIcon,
   Loader2,
   RefreshCcw,
+  ShieldCheck,
   Sparkles,
   Upload,
   UserRound,
@@ -19,6 +20,7 @@ import {
 } from "@/api/seedream"
 import { SiteFooter } from "@/components/site-footer"
 import { SiteHeader } from "@/components/site-header"
+import { CapVerification } from "@/components/cap-verification"
 import { Button } from "@/components/ui/button"
 import {
   getSeedreamTemplateAssetUrl,
@@ -66,6 +68,13 @@ export function SeedreamStudioPage({ onBack }: { onBack: () => void }) {
   const [loadingBackgrounds, setLoadingBackgrounds] = useState(true)
   const [generating, setGenerating] = useState(false)
   const [error, setError] = useState("")
+  const [acceptedPrivacy, setAcceptedPrivacy] = useState(false)
+  const [acceptedContentRules, setAcceptedContentRules] = useState(false)
+  const [capToken, setCapToken] = useState("")
+  const [capResetSignal, setCapResetSignal] = useState(0)
+
+  const capEndpoint = import.meta.env.VITE_CAP_API_ENDPOINT || ""
+  const skipCap = import.meta.env.VITE_SKIP_CAPTCHA === "true"
 
   useEffect(() => {
     let cancelled = false
@@ -108,25 +117,53 @@ export function SeedreamStudioPage({ onBack }: { onBack: () => void }) {
     [backgrounds, selectedBackgroundId]
   )
 
-  const canGenerate = Boolean(personFile && selectedBackgroundId && !generating)
+  const agreementsAccepted = acceptedPrivacy && acceptedContentRules
+  const capAccepted = skipCap || !capEndpoint || Boolean(capToken)
+  const canGenerate = Boolean(
+    personFile &&
+      selectedBackgroundId &&
+      agreementsAccepted &&
+      capAccepted &&
+      !generating
+  )
 
   async function handleGenerate() {
+    if (!agreementsAccepted) {
+      setError("请先阅读并同意隐私与安全、用户内容规范。")
+      return
+    }
     if (!personFile || !selectedBackgroundId) return
+    if (!capAccepted) {
+      setError("请先完成人机验证。")
+      return
+    }
 
     setGenerating(true)
     setError("")
     setResult(null)
 
     try {
-      setResult(await generateSeedreamImage(personFile, selectedBackgroundId))
+      setResult(
+        await generateSeedreamImage(personFile, selectedBackgroundId, capToken)
+      )
     } catch (err) {
       setError(err instanceof Error ? err.message : "生成失败")
     } finally {
       setGenerating(false)
+      if (!skipCap) {
+        setCapToken("")
+        setCapResetSignal((current) => current + 1)
+      }
     }
   }
 
   function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
+    if (!agreementsAccepted) {
+      event.currentTarget.value = ""
+      setError("请先阅读并同意隐私与安全、用户内容规范。")
+      return
+    }
+
     const file = event.target.files?.[0] ?? null
     setPersonFile(file)
     setPersonPreviewUrl(file ? URL.createObjectURL(file) : "")
@@ -167,6 +204,60 @@ export function SeedreamStudioPage({ onBack }: { onBack: () => void }) {
 
           <section className="grid gap-4 lg:grid-cols-[0.86fr_1.14fr]">
             <div className="grid gap-4">
+              <section className="grid gap-3 border bg-card p-4 sm:p-5">
+                <h2 className="flex items-center gap-2 text-xl font-semibold">
+                  <ShieldCheck data-icon="inline-start" />
+                  使用前须知
+                </h2>
+                <label className="flex gap-3 text-sm leading-6 text-muted-foreground">
+                  <input
+                    type="checkbox"
+                    className="mt-1 size-4 accent-primary"
+                    checked={acceptedPrivacy}
+                    onChange={(event) =>
+                      setAcceptedPrivacy(event.currentTarget.checked)
+                    }
+                  />
+                  <span>
+                    我已阅读并同意{" "}
+                    <a
+                      className="underline"
+                      href="/privacy-security"
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      隐私与安全
+                    </a>
+                    。
+                  </span>
+                </label>
+                <label className="flex gap-3 text-sm leading-6 text-muted-foreground">
+                  <input
+                    type="checkbox"
+                    className="mt-1 size-4 accent-primary"
+                    checked={acceptedContentRules}
+                    onChange={(event) =>
+                      setAcceptedContentRules(event.currentTarget.checked)
+                    }
+                  />
+                  <span>
+                    我已阅读并同意{" "}
+                    <a
+                      className="underline"
+                      href="/content-guidelines"
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      用户内容规范
+                    </a>
+                    。
+                  </span>
+                </label>
+                <p className="text-xs leading-5 text-muted-foreground">
+                  同意后可上传照片；系统不会保存或公开你的上传内容。
+                </p>
+              </section>
+
               <section className="grid gap-4 border bg-card p-4 sm:p-5">
                 <div className="flex items-center justify-between gap-3">
                   <h2 className="flex items-center gap-2 text-xl font-semibold">
@@ -204,6 +295,7 @@ export function SeedreamStudioPage({ onBack }: { onBack: () => void }) {
                   type="button"
                   variant="outline"
                   className="rounded-none font-mono"
+                  disabled={!agreementsAccepted}
                   onClick={() => fileInputRef.current?.click()}
                 >
                   <Upload data-icon="inline-start" />
@@ -304,7 +396,7 @@ export function SeedreamStudioPage({ onBack }: { onBack: () => void }) {
                         {generating ? (
                           <>
                             <Loader2 className="mx-auto size-5 animate-spin text-primary" />
-                            <span>生成中...</span>
+                            <span>图片生成中，大概需要 30 秒...</span>
                           </>
                         ) : (
                           <>
@@ -323,6 +415,20 @@ export function SeedreamStudioPage({ onBack }: { onBack: () => void }) {
               </div>
 
               <div className="grid gap-3">
+                {agreementsAccepted ? (
+                  <CapVerification
+                    endpoint={capEndpoint}
+                    value={capToken}
+                    onValueChange={setCapToken}
+                    resetSignal={capResetSignal}
+                    skip={skipCap}
+                    actionLabel="生成"
+                  />
+                ) : (
+                  <div className="border bg-muted/30 px-3 py-2 text-sm text-muted-foreground">
+                    请先同意两份用户须知。
+                  </div>
+                )}
                 {error ? (
                   <div className="border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive">
                     {error}
@@ -336,7 +442,10 @@ export function SeedreamStudioPage({ onBack }: { onBack: () => void }) {
                     onClick={handleGenerate}
                   >
                     {generating ? (
-                      <Loader2 data-icon="inline-start" className="animate-spin" />
+                      <Loader2
+                        data-icon="inline-start"
+                        className="animate-spin"
+                      />
                     ) : (
                       <Sparkles data-icon="inline-start" />
                     )}
