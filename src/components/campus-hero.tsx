@@ -94,12 +94,12 @@ export function CampusHero({ onExplore }: { onExplore: () => void }) {
                 TimeCampus Archive
               </p>
               <h1 className="hero-title mt-3 max-w-3xl text-4xl leading-tight font-semibold sm:text-5xl">
-                把北航建筑记忆做成可以切换年代的地图入口
+                北航校园时光机地图，将北航历史记忆装进时光胶囊
               </h1>
             </div>
             <p className="hero-copy max-w-2xl text-sm leading-7 text-sidebar-foreground/78 sm:text-base">
-              图片来自校史馆原始目录，保持完整构图并压缩为前端资产。
-              从八楼到十六馆、主楼、科技园与公共配套，用北航蓝建立更有时间感的主页。
+              1952——2026
+              图片来自北航校史馆与网络资源
             </p>
             <div className="hero-actions flex flex-wrap gap-3">
               <Button
