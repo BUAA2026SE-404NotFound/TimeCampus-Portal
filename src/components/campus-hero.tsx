@@ -139,12 +139,12 @@ export function CampusHero({ onExplore }: { onExplore: () => void }) {
                   })
                 }
               />
-              <div className="mt-3 flex items-start justify-between gap-3 text-sm">
-                <div className="min-w-0">
-                  <p className="truncate font-semibold">
+              <div className="mt-3 flex h-10 items-start justify-between gap-3 text-sm">
+                <div className="grid min-w-0 grid-rows-2">
+                  <p className="h-5 truncate font-semibold">
                     {activeFrame.caption}
                   </p>
-                  <p className="text-sidebar-foreground/65">
+                  <p className="h-5 truncate text-sidebar-foreground/65">
                     {activeFrame.year}
                   </p>
                 </div>

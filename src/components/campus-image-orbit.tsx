@@ -184,11 +184,10 @@ export function CampusImageOrbit() {
               Horizontal Film Gallery
             </p>
             <h2 className="max-w-4xl text-3xl leading-tight font-semibold sm:text-4xl">
-              沿着校史馆原始分类横向翻看片段
+              时光胶卷
             </h2>
             <p className="max-w-3xl text-sm leading-7 text-sidebar-foreground/72">
-              两条历史胶片轨道与一条现代彩色影像轨道使用 GSAP timeline
-              持续横向循环；点击任意小图可放大预览。
+              点击任意小图可放大预览。
             </p>
           </header>
 

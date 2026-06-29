@@ -24,6 +24,33 @@ export type PublicMapPoi = {
   mediaList?: PublicMapMedia[]
 }
 
+export type WalkingRoutePoint = {
+  name: string
+  lat: number
+  lng: number
+}
+
+export type WalkingRouteCoordinate = {
+  lat: number
+  lng: number
+}
+
+export type WalkingRouteLeg = {
+  from: WalkingRoutePoint
+  to: WalkingRoutePoint
+  distanceMeters: number
+  durationSeconds: number
+  path: WalkingRouteCoordinate[]
+}
+
+export type WalkingRoutePlan = {
+  mode: string
+  provider: string
+  totalDistanceMeters: number
+  totalDurationSeconds: number
+  legs: WalkingRouteLeg[]
+}
+
 type PublicMapHome = {
   pois?: PublicMapPoi[]
 }
@@ -37,4 +64,12 @@ export async function getPublicMapHome(year?: number) {
   return {
     pois: data.pois ?? [],
   }
+}
+
+export function planWalkingRoute(points: WalkingRoutePoint[]) {
+  return apiRequest<WalkingRoutePlan>("/map/walking-route", {
+    method: "POST",
+    auth: false,
+    body: { points },
+  })
 }

@@ -140,7 +140,14 @@ export function PortalPage({
           <div data-portal-visual>
             <CampusHero onExplore={onProjectDetail} />
           </div>
-          <section className="grid gap-4 lg:grid-cols-3">
+          <section
+            data-hover-lift
+            data-portal-card
+            className="will-change-transform"
+          >
+            <CampusMapEntryCard onOpen={onCampusMap} />
+          </section>
+          <section className="grid gap-4 md:grid-cols-2">
             <div
               data-hover-lift
               data-portal-card
@@ -154,13 +161,6 @@ export function PortalPage({
               className="h-full will-change-transform"
             >
               <MiniProgramCard onDetail={onMiniProgramDetail} />
-            </div>
-            <div
-              data-hover-lift
-              data-portal-card
-              className="h-full will-change-transform"
-            >
-              <CampusMapEntryCard onOpen={onCampusMap} />
             </div>
           </section>
           <section

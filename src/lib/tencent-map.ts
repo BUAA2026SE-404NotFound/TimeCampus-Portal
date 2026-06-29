@@ -12,6 +12,7 @@ export type TencentMap = {
   setZoom: (zoom: number) => void
   setBoundary?: (bounds: unknown) => void
   panTo?: (center: unknown) => void
+  fitBounds?: (bounds: unknown, options?: Record<string, unknown>) => void
   on: (event: string, handler: (event: TencentMapClickEvent) => void) => void
   off?: (event: string, handler: (event: TencentMapClickEvent) => void) => void
   destroy?: () => void
@@ -25,6 +26,10 @@ export type TencentMarkerLayer = {
     event: string,
     handler: (event: TencentMarkerClickEvent) => void
   ) => void
+}
+
+export type TencentPolylineLayer = {
+  setMap?: (map: TencentMap | null) => void
 }
 
 export type TencentMarkerClickEvent = {
@@ -44,7 +49,11 @@ export type TMapNamespace = {
   ) => TencentMap
   LatLng: new (lat: number, lng: number) => TencentLatLng
   MultiMarker: new (options: Record<string, unknown>) => TencentMarkerLayer
+  MultiPolyline: new (
+    options: Record<string, unknown>
+  ) => TencentPolylineLayer
   MarkerStyle: new (options: Record<string, unknown>) => unknown
+  PolylineStyle: new (options: Record<string, unknown>) => unknown
   Point: new (x: number, y: number) => unknown
   LatLngBounds?: new (southWest: unknown, northEast: unknown) => unknown
 }

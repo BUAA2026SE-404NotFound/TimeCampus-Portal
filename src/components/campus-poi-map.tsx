@@ -24,6 +24,7 @@ import {
   type TencentMapClickEvent,
   type TencentMarkerClickEvent,
   type TencentMarkerLayer,
+  type TencentPolylineLayer,
 } from "@/lib/tencent-map"
 import {
   BUAA_CAMPUS_CENTER,
@@ -47,6 +48,7 @@ type CampusPoiMapProps<TPoi extends CampusPoiMapPoi> = {
   mapKey: string
   pois: TPoi[]
   selectedPoiId?: CampusPoiId | null
+  highlightedPoiIds?: CampusPoiId[]
   mode?: CampusPoiMapMode
   onModeChange?: (mode: CampusPoiMapMode) => void
   selectedYear?: number | null
@@ -68,6 +70,7 @@ type CampusPoiMapProps<TPoi extends CampusPoiMapPoi> = {
       formatDistance: (meters: number) => string
     }
   ) => ReactNode
+  routePaths?: Array<Array<{ lat: number; lng: number }>>
 }
 
 function markerSvg({
@@ -114,6 +117,7 @@ export function CampusPoiMap<TPoi extends CampusPoiMapPoi>({
   mapKey,
   pois,
   selectedPoiId,
+  highlightedPoiIds = [],
   mode,
   onModeChange,
   selectedYear,
@@ -129,10 +133,12 @@ export function CampusPoiMap<TPoi extends CampusPoiMapPoi>({
   focusZoom = 17,
   nearestTitle = "附近 POI",
   renderNearestItem,
+  routePaths = [],
 }: CampusPoiMapProps<TPoi>) {
   const containerRef = useRef<HTMLDivElement | null>(null)
   const mapRef = useRef<TencentMap | null>(null)
   const markerLayerRef = useRef<TencentMarkerLayer | null>(null)
+  const routeLayerRef = useRef<TencentPolylineLayer | null>(null)
   const [internalMode, setInternalMode] = useState<CampusPoiMapMode>("all")
   const [internalYear, setInternalYear] = useState<number | null>(null)
   const [hideAllPois, setHideAllPois] = useState(false)
@@ -149,6 +155,10 @@ export function CampusPoiMap<TPoi extends CampusPoiMapPoi>({
     selectedPoiId === undefined || selectedPoiId === null
       ? null
       : String(selectedPoiId)
+  const highlightedPoiKeys = useMemo(
+    () => new Set(highlightedPoiIds.map(String)),
+    [highlightedPoiIds]
+  )
 
   const validPois = useMemo(
     () => pois.filter((poi) => isCampusPoiValid(poi)),
@@ -336,7 +346,9 @@ export function CampusPoiMap<TPoi extends CampusPoiMapPoi>({
           height: 48,
           anchor: new TMap.Point(20, 44),
           src: markerSvg({
-            active: campusPoiKey(poi) === selectedPoiKey,
+            active:
+              campusPoiKey(poi) === selectedPoiKey ||
+              highlightedPoiKeys.has(campusPoiKey(poi)),
             count: getCampusPoiMediaCountForMode(
               poi,
               effectiveMode,
@@ -385,10 +397,64 @@ export function CampusPoiMap<TPoi extends CampusPoiMapPoi>({
     effectiveMode,
     mapKey,
     mapReady,
+    highlightedPoiKeys,
     selectPoi,
     selectedPoiKey,
     validPois,
   ])
+
+  useEffect(() => {
+    if (!mapReady || !window.TMap || !mapRef.current) {
+      return
+    }
+
+    routeLayerRef.current?.setMap?.(null)
+    const validPaths = routePaths
+      .map((path) =>
+        path.filter(
+          (point) => Number.isFinite(point.lat) && Number.isFinite(point.lng)
+        )
+      )
+      .filter((path) => path.length >= 2)
+    if (!validPaths.length) {
+      return
+    }
+
+    const TMap = window.TMap
+    routeLayerRef.current = new TMap.MultiPolyline({
+      map: mapRef.current,
+      styles: {
+        route: new TMap.PolylineStyle({
+          color: "#005ea8",
+          width: 7,
+          borderColor: "#ffffff",
+          borderWidth: 3,
+          lineCap: "round",
+        }),
+      },
+      geometries: validPaths.map((path, index) => ({
+        id: `route-${index}`,
+        styleId: "route",
+        paths: path.map((point) => new TMap.LatLng(point.lat, point.lng)),
+      })),
+    })
+
+    const points = validPaths.flat()
+    if (TMap.LatLngBounds && mapRef.current.fitBounds) {
+      const latitudes = points.map((point) => point.lat)
+      const longitudes = points.map((point) => point.lng)
+      const bounds = new TMap.LatLngBounds(
+        new TMap.LatLng(Math.min(...latitudes), Math.min(...longitudes)),
+        new TMap.LatLng(Math.max(...latitudes), Math.max(...longitudes))
+      )
+      mapRef.current.fitBounds(bounds, { padding: 72, maxZoom: 18 })
+    }
+
+    return () => {
+      routeLayerRef.current?.setMap?.(null)
+      routeLayerRef.current = null
+    }
+  }, [mapReady, routePaths])
 
   useEffect(() => {
     if (!mapReady || !mapRef.current) {
@@ -420,6 +486,7 @@ export function CampusPoiMap<TPoi extends CampusPoiMapPoi>({
     return () => {
       map?.destroy?.()
       markerLayerRef.current = null
+      routeLayerRef.current = null
       mapRef.current = null
     }
   }, [])

@@ -7,6 +7,8 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { AccountsPage } from "@/pages/admin/accounts-page"
+import { AgentEvalPage } from "@/pages/admin/agent-eval-page"
+import { AgentOperationsPage } from "@/pages/admin/agent-operations-page"
 import { DashboardPage } from "@/pages/admin/dashboard-page"
 import { ImportsPage } from "@/pages/admin/imports-page"
 import { LogsPage } from "@/pages/admin/logs-page"
@@ -73,6 +75,15 @@ export function MainContent({
       {activePage === "ops-map" && <OpsMapPage snapshot={snapshot} />}
       {activePage === "logs" && <LogsPage snapshot={snapshot} />}
       {activePage === "accounts" && <AccountsPage />}
+      {activePage === "agent-operations" && (
+        <AgentOperationsPage
+          role={snapshot.profile.role}
+          onChanged={onChanged}
+        />
+      )}
+      {activePage === "agent-eval" && (
+        <AgentEvalPage role={snapshot.profile.role} />
+      )}
     </div>
   )
 }

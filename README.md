@@ -1,6 +1,6 @@
 # TimeCampus Portal
 
-TimeCampus Portal 是“时光航迹”的前端子模块，负责门户首页、项目详情、小程序说明、公开校园地图、时光合影工作室和 Web 管理端。项目基于 React 19、TypeScript、Vite、Tailwind CSS 4、shadcn/ui、GSAP、cap-widget 和腾讯地图 JS API。
+TimeCampus Portal 是“时光航迹”的前端子模块，负责门户首页、项目详情、小程序说明、公开校园地图、时光合影工作室和 Web 管理端。项目基于 React 19、TypeScript、Vite、Tailwind CSS 4、shadcn/ui、GSAP、markstream-react、cap-widget 和腾讯地图 JS API。
 
 ## 本地开发
 
@@ -41,7 +41,7 @@ VITE_ADMIN_REDIRECT=true
 - `/`：门户首页
 - `/project-info`：项目信息详情
 - `/mini-program`：微信小程序说明
-- `/campus-map`：独立校园地图页，懒加载腾讯地图脚本和地图页面代码
+- `/campus-map`：游客智能导览页，支持景点检索、历史影像、热门路线和多点步行规划，并懒加载腾讯地图
 - `/seedream-studio`：时光合影工作室，上传人物照片并选择后端白名单历史模板
 - `/privacy-security`：隐私与安全须知
 - `/content-guidelines`：用户内容规范须知
@@ -58,6 +58,8 @@ VITE_ADMIN_REDIRECT=true
 - `/admin/ugc`：UGC 审核
 - `/admin/comments`：评论审核，当前因微信小程序服务策略标记为已废弃
 - `/admin/map-tools`：地图工具
+- `/admin/agent-operations`：可选择持久 session 的多轮运营智能体、流式 Markdown、质量门禁和 MCP 写操作审批
+- `/admin/agent-eval`：运营/导览 Agent 的 Fixture 与 Live 评测
 
 管理端登录调用 `POST /api/v1/admin/login`，本地 token key 为 `TimeCampus-Admin-Token`。生产登录页应通过 Cap widget 获取 `capToken`，真正校验由 Backend 使用 Cap secret 完成。
 
@@ -83,8 +85,10 @@ src/
 - 页面内复杂、可复用或有独立状态的模块放在 `src/features`。
 - 通用 UI 和布局组件放在 `src/components`，shadcn/ui 基础组件放在 `src/components/ui`。
 - API 调用统一放在 `src/api`，页面和 feature 组件不直接散落 `fetch`。
+- Agent SSE 由 `src/api/agent.ts` 解析，未完成 Markdown 使用 `markstream-react` 渲染。
 - 管理端数据失败、登录过期或 `none` 权限时展示明确提示，不展示虚假 fallback 数据。
 - 首页不初始化腾讯地图；公开地图进入 `/campus-map` 后再加载地图脚本和数据。
+- 首页 `CAMPUS MAP` 为智能导览主入口，使用静态校园图预览，`TIMECAMPUS ARCHIVE` 保持独立。
 - 时光合影工作室必须先同意两份用户须知，生成前通过 Cap，并只调用 Backend 白名单模板接口。
 - 使用后端返回的媒体 URL，不在前端拼接受保护文件路径。
 - 不在前端暴露腾讯地图 SK、COS 密钥、Cap secret、DeepSeek key 等私密配置。

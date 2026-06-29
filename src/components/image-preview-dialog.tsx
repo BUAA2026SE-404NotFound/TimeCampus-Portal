@@ -1,6 +1,8 @@
 import { XIcon } from "lucide-react"
 import { createPortal } from "react-dom"
 
+import { ProgressiveImage } from "@/components/progressive-image"
+
 export type ImagePreviewState = {
   src: string
   placeholderSrc?: string
@@ -56,11 +58,13 @@ export function ImagePreviewDialog({
           onClick={() => onOpenChange(false)}
         >
           <span className="absolute inset-3 sm:inset-5">
-            <img
+            <ProgressiveImage
               src={image.src}
+              placeholderSrc={image.placeholderSrc}
               alt={image.alt}
-              className="absolute inset-0 size-full object-contain"
-              loading="eager"
+              className="absolute inset-0 size-full bg-transparent"
+              imageClassName="object-contain"
+              loading="lazy"
             />
           </span>
         </button>

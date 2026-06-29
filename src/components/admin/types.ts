@@ -1,6 +1,8 @@
 import {
   BookOpenCheck,
+  Bot,
   FileUp,
+  FlaskConical,
   Gauge,
   History,
   Landmark,
@@ -20,6 +22,8 @@ export type PageId =
   | "ops-map"
   | "logs"
   | "accounts"
+  | "agent-operations"
+  | "agent-eval"
 
 export type NavigationItem = {
   id: PageId
@@ -43,6 +47,13 @@ export const navigationGroups: Array<{
         label: "Dashboard",
         description: "运营首页",
         icon: Gauge,
+      },
+      {
+        id: "agent-operations",
+        path: "/admin/agent-operations",
+        label: "运营智能体",
+        description: "任务与审批",
+        icon: Bot,
       },
       {
         id: "ops-map",
@@ -110,6 +121,13 @@ export const navigationGroups: Array<{
         description: "地理编码",
         icon: MapPinned,
       },
+      {
+        id: "agent-eval",
+        path: "/admin/agent-eval",
+        label: "Agent Eval",
+        description: "质量回归",
+        icon: FlaskConical,
+      },
     ],
   },
 ]
@@ -154,6 +172,14 @@ export const pageTitles: Record<
   accounts: {
     title: "管理员管理",
     description: "管理管理员账号状态，并分配 super、admin、read、none 权限。",
+  },
+  "agent-operations": {
+    title: "运营智能体",
+    description: "基于 RAG 质量门禁生成运营任务，并审批 MCP 写操作。",
+  },
+  "agent-eval": {
+    title: "Agent Eval",
+    description: "运行运营与导览智能体的固定回归或真实联调评测。",
   },
 }
 

@@ -59,15 +59,42 @@ export async function apiRequest<T>(
           : JSON.stringify(options.body),
   })
 
+  const payload = (await response.json().catch(() => null)) as ApiResponse<T> | null
+
   if (!response.ok) {
-    throw new Error(`HTTP ${response.status}`)
+    throw new Error(payload?.message || `HTTP ${response.status}`)
   }
 
-  const payload = (await response.json()) as ApiResponse<T>
-
-  if (payload.code !== 0) {
-    throw new Error(payload.message || `API code ${payload.code}`)
+  if (!payload || payload.code !== 0) {
+    throw new Error(payload?.message || "API 返回格式无效")
   }
 
   return payload.data
+}
+
+export async function apiStreamRequest(
+  path: string,
+  options: RequestOptions = {}
+) {
+  const headers = new Headers(options.headers)
+  headers.set("Content-Type", "application/json")
+
+  if (options.auth !== false) {
+    const token = localStorage.getItem(ADMIN_TOKEN_KEY)
+    if (token) headers.set("Authorization", `Bearer ${token}`)
+  }
+
+  const response = await fetch(buildUrl(path, options.query), {
+    ...options,
+    headers,
+    body:
+      options.body === undefined ? undefined : JSON.stringify(options.body),
+  })
+
+  if (!response.ok) {
+    const payload = (await response.json().catch(() => null)) as ApiResponse<unknown> | null
+    throw new Error(payload?.message || `HTTP ${response.status}`)
+  }
+  if (!response.body) throw new Error("浏览器不支持流式响应")
+  return response
 }
