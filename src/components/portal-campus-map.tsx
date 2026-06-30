@@ -31,6 +31,7 @@ import {
 } from "@/components/campus-poi-map-utils"
 import { ProgressiveImage } from "@/components/progressive-image"
 import {
+  getPublicMapConfig,
   getPublicMapHome,
   planWalkingRoute,
   type PublicMapMedia,
@@ -105,7 +106,9 @@ export function PortalCampusMap() {
   const [routeLoading, setRouteLoading] = useState(false)
   const [routeError, setRouteError] = useState("")
   const [routeNotice, setRouteNotice] = useState("")
-  const mapKey = import.meta.env.VITE_TENCENT_MAP_KEY || ""
+  const [mapKey, setMapKey] = useState(
+    import.meta.env.VITE_TENCENT_MAP_KEY || ""
+  )
 
   const availableYears = useMemo(
     () => getCampusPoiAvailableYears(portalPois),
@@ -164,6 +167,16 @@ export function PortalCampusMap() {
 
   useEffect(() => {
     let cancelled = false
+
+    getPublicMapConfig()
+      .then((config) => {
+        if (!cancelled && config.tencentMapKey) {
+          setMapKey(config.tencentMapKey)
+        }
+      })
+      .catch(() => {
+        // The compile-time key remains a valid offline/dev fallback.
+      })
 
     getPublicMapHome()
       .then((data) => {

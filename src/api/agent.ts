@@ -97,8 +97,11 @@ export type AgentEvalCase = {
 }
 
 export type AgentEvalSummary = {
+  runId: string
   suite: EvalSuite
   mode: EvalMode
+  repetitions: number
+  caseCount: number
   total: number
   passed: number
   failed: number
@@ -106,27 +109,83 @@ export type AgentEvalSummary = {
   averageOverall: number
   minPassRate: number
   minOverall: number
+  minConsistency: number
+  consistencyRate: number
+  p50LatencyMs?: number
+  p95LatencyMs?: number
+  highRiskPassed: boolean
+  gatePassed: boolean
+  agentVersion: string
+  gitCommit: string
+  model: string
+  promptVersion: string
+  datasetVersion: string
   generatedAt: string
-  results: Array<{
-    caseId: string
-    suite: "maintenance" | "guide"
-    target: string
+  results: AgentEvalResult[]
+}
+
+export type AgentEvalResult = {
+  caseId: string
+  suite: "maintenance" | "guide"
+  target: string
+  mode: EvalMode
+  attempt: number
+  metrics: Record<string, number>
+  overall: number
+  passed: boolean
+  failureReasons: string[]
+  badCaseTags: string[]
+  latencyMs?: number
+  trace: {
+    output: string
+    toolCalls: Array<{
+      name: string
+      arguments: Record<string, unknown>
+      result?: Record<string, unknown>
+      status: "requested" | "executed" | "interrupted" | "error"
+    }>
+    retrievedDocs?: Array<{
+      id: string
+      type: string
+      title: string
+      uri: string
+      text: string
+    }>
+    routePlan?: Record<string, unknown>
+    error?: string
+  }
+}
+
+export type AgentEvalRunSummary = Omit<AgentEvalSummary, "results">
+
+export type AgentBadCase = {
+  id: string
+  runId: string
+  caseId: string
+  suite: "maintenance" | "guide"
+  status: "open" | "resolved"
+  note: string
+  resolution: string
+  failureReasons: string[]
+  tags: string[]
+  trace: AgentEvalResult["trace"]
+  createdAt: string
+  updatedAt: string
+}
+
+export type AgentEvalStreamHandlers = {
+  onStarted?: (payload: {
+    suite: EvalSuite
     mode: EvalMode
-    metrics: Record<string, number>
-    overall: number
-    passed: boolean
-    failureReasons: string[]
-    badCaseTags: string[]
-    latencyMs?: number
-    trace: {
-      output: string
-      toolCalls: Array<{
-        name: string
-        arguments: Record<string, unknown>
-      }>
-      error?: string
-    }
-  }>
+    repetitions: number
+    total: number
+  }) => void
+  onCase?: (payload: {
+    completed: number
+    total: number
+    result: AgentEvalResult
+  }) => void
+  onResult?: (summary: AgentEvalSummary) => void
 }
 
 export function runAgentOperation(task: string) {
@@ -218,6 +277,76 @@ export function runAgentEval(suite: EvalSuite, mode: EvalMode) {
   })
 }
 
+export async function streamAgentEval(
+  request: {
+    suite: EvalSuite
+    mode: EvalMode
+    repetitions: number
+    caseIds?: string[]
+  },
+  handlers: AgentEvalStreamHandlers
+) {
+  const response = await apiStreamRequest("/admin/agent/evals/runs/stream", {
+    method: "POST",
+    body: {
+      ...request,
+      minPassRate: 0.85,
+      minOverall: 80,
+      minConsistency: 0.8,
+    },
+  })
+  await consumeEventStream(response, (event, payload) => {
+    if (event === "started") {
+      handlers.onStarted?.(
+        payload as Parameters<NonNullable<typeof handlers.onStarted>>[0]
+      )
+    } else if (event === "case") {
+      handlers.onCase?.(
+        payload as Parameters<NonNullable<typeof handlers.onCase>>[0]
+      )
+    } else if (event === "result") {
+      handlers.onResult?.(payload as unknown as AgentEvalSummary)
+    }
+  })
+}
+
+export function getAgentEvalRuns(limit = 20) {
+  return apiRequest<{ runs: AgentEvalRunSummary[] }>("/admin/agent/evals/runs", {
+    query: { limit },
+  })
+}
+
+export function getAgentEvalRun(runId: string) {
+  return apiRequest<AgentEvalSummary>(
+    `/admin/agent/evals/runs/${encodeURIComponent(runId)}`
+  )
+}
+
+export function getAgentBadCases(status: "all" | "open" | "resolved" = "all") {
+  return apiRequest<{ badCases: AgentBadCase[] }>(
+    "/admin/agent/evals/bad-cases",
+    { query: { status } }
+  )
+}
+
+export function createAgentBadCase(runId: string, caseId: string, note = "") {
+  return apiRequest<AgentBadCase>("/admin/agent/evals/bad-cases", {
+    method: "POST",
+    body: { runId, caseId, note },
+  })
+}
+
+export function updateAgentBadCase(
+  id: string,
+  status: "open" | "resolved",
+  resolution = ""
+) {
+  return apiRequest<AgentBadCase>(
+    `/admin/agent/evals/bad-cases/${encodeURIComponent(id)}`,
+    { method: "PATCH", body: { status, resolution } }
+  )
+}
+
 async function consumeAgentStream(
   response: Response,
   handlers: AgentStreamHandlers
@@ -261,6 +390,40 @@ async function consumeAgentStream(
       } else if (event === "error") {
         throw new Error(String(payload.message ?? "运营智能体流式请求失败"))
       }
+    }
+    if (done) break
+  }
+}
+
+async function consumeEventStream(
+  response: Response,
+  onEvent: (event: string, payload: Record<string, unknown>) => void
+) {
+  const reader = response.body!.getReader()
+  const decoder = new TextDecoder()
+  let buffer = ""
+  while (true) {
+    const { done, value } = await reader.read()
+    buffer += decoder.decode(value, { stream: !done }).replace(/\r\n/g, "\n")
+    const blocks = buffer.split("\n\n")
+    buffer = blocks.pop() ?? ""
+    for (const block of blocks) {
+      const event = block
+        .split("\n")
+        .find((line) => line.startsWith("event:"))
+        ?.slice(6)
+        .trim()
+      const data = block
+        .split("\n")
+        .filter((line) => line.startsWith("data:"))
+        .map((line) => line.slice(5).trimStart())
+        .join("\n")
+      if (!event || !data) continue
+      const payload = JSON.parse(data) as Record<string, unknown>
+      if (event === "error") {
+        throw new Error(String(payload.message ?? "Agent Eval 流式请求失败"))
+      }
+      onEvent(event, payload)
     }
     if (done) break
   }

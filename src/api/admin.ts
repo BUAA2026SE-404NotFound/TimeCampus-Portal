@@ -233,6 +233,7 @@ export type AdminSnapshot = {
   comments: CommentItem[]
   logs: AuditLog[]
   mapOverview: AdminMapOverview
+  loadWarnings: string[]
 }
 
 export type AdminLoginInput = {
@@ -478,8 +479,8 @@ export function getStoredAdminProfile() {
 
 export async function getAdminSnapshot(): Promise<AdminSnapshot> {
   const storedProfile = getStoredAdminProfile()
-  const [stats, overview, backendPois, media, ugc, comments, logs] =
-    await Promise.all([
+  const labels = ["统计", "运营地图", "POI", "影像", "UGC", "评论", "日志"]
+  const results = await Promise.allSettled([
       getAdminDashboardStats(),
       getAdminMapOverview(),
       apiRequest<BackendPoi[]>("/admin/pois"),
@@ -492,6 +493,44 @@ export async function getAdminSnapshot(): Promise<AdminSnapshot> {
       }),
       apiRequest<BackendLog[]>("/admin/logs", { query: { limit: 20 } }),
     ])
+  const failures = results
+    .map((result, index) =>
+      result.status === "rejected"
+        ? `${labels[index]}：${errorMessage(result.reason)}`
+        : null
+    )
+    .filter((message): message is string => Boolean(message))
+  if (
+    results[0].status === "rejected" &&
+    isAuthenticationError(results[0].reason)
+  ) {
+    throw results[0].reason
+  }
+  if (failures.length === results.length) {
+    throw results[0].status === "rejected"
+      ? results[0].reason
+      : new Error("管理端数据加载失败")
+  }
+
+  const stats =
+    results[0].status === "fulfilled"
+      ? results[0].value
+      : {
+          metrics: [],
+          trends: [],
+          reviewDistribution: [],
+          mediaTypeDistribution: [],
+        }
+  const overview =
+    results[1].status === "fulfilled"
+      ? results[1].value
+      : { pois: [], recentFavorites: [], recentComments: [] }
+  const backendPois =
+    results[2].status === "fulfilled" ? results[2].value : []
+  const media = results[3].status === "fulfilled" ? results[3].value : []
+  const ugc = results[4].status === "fulfilled" ? results[4].value : []
+  const comments = results[5].status === "fulfilled" ? results[5].value : []
+  const logs = results[6].status === "fulfilled" ? results[6].value : []
 
   const adaptedPois = backendPois.map((poi) => toPoi(poi, overview))
   const adaptedMedia = media.map((item) => toMediaRecord(item, adaptedPois))
@@ -544,6 +583,7 @@ export async function getAdminSnapshot(): Promise<AdminSnapshot> {
     comments: adaptedComments,
     logs: adaptedLogs,
     mapOverview: overview,
+    loadWarnings: failures,
   }
 }
 
@@ -565,7 +605,16 @@ export function getEmptyAdminSnapshot(profile: AdminProfile): AdminSnapshot {
       recentFavorites: [],
       recentComments: [],
     },
+    loadWarnings: [],
   }
+}
+
+function errorMessage(reason: unknown) {
+  return reason instanceof Error ? reason.message : "请求失败"
+}
+
+function isAuthenticationError(reason: unknown) {
+  return /401|unauthori[sz]ed|token|登录|权限/i.test(errorMessage(reason))
 }
 
 export async function getAdminDashboardStats() {

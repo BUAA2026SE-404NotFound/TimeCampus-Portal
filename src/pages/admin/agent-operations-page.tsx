@@ -315,7 +315,7 @@ export function AgentOperationsPage({
                 disabled={loading || !sessions.length}
                 onValueChange={(value) => void loadSession(value)}
               >
-                <SelectTrigger className="w-64 rounded-none">
+                <SelectTrigger className="w-[min(16rem,60vw)] rounded-none">
                   <MessageSquare />
                   <SelectValue placeholder="选择会话" />
                 </SelectTrigger>
@@ -334,6 +334,7 @@ export function AgentOperationsPage({
                 className="rounded-none"
                 disabled={loading}
                 title="新建会话"
+                aria-label="新建运营会话"
                 onClick={() => void newSession()}
               >
                 <Plus />
@@ -344,7 +345,7 @@ export function AgentOperationsPage({
         <CardContent className="grid gap-4">
           <div
             ref={messageListRef}
-            className="h-[420px] overflow-y-auto border bg-muted/10 p-4"
+            className="h-[clamp(420px,58dvh,680px)] overflow-y-auto border bg-muted/10 p-4"
             aria-live="polite"
           >
             {messages.length ? (
@@ -399,10 +400,16 @@ export function AgentOperationsPage({
               aria-invalid={Boolean(error)}
               placeholder="例如：先检索主楼现有资料，再给出文案维护建议"
               onChange={(event) => setTask(event.target.value)}
+              onKeyDown={(event) => {
+                if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {
+                  event.preventDefault()
+                  void startRun()
+                }
+              }}
             />
             <div className="flex flex-wrap items-center justify-between gap-3">
               <p className="text-xs text-muted-foreground">
-                {stage || "删除工具不会提供给智能体"}
+                {stage || "Ctrl/Command + Enter 发送；删除工具不会提供给智能体"}
               </p>
               <Button
                 type="button"
@@ -503,6 +510,29 @@ export function AgentOperationsPage({
               </CardContent>
             </Card>
           </div>
+
+          {execution?.toolEvents.length ? (
+            <Card className="rounded-none shadow-none">
+              <CardHeader>
+                <CardTitle>工具调用轨迹</CardTitle>
+                <CardDescription>
+                  按执行顺序展示 MCP 工具返回，便于定位失败链路。
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="grid gap-2">
+                {execution.toolEvents.map((event, index) => (
+                  <details key={`${event.name}-${index}`} className="border p-3">
+                    <summary className="cursor-pointer font-mono text-sm font-semibold">
+                      {index + 1}. {event.name || "tool"}
+                    </summary>
+                    <pre className="mt-3 max-h-64 overflow-auto whitespace-pre-wrap bg-muted/20 p-3 text-xs">
+                      {event.content}
+                    </pre>
+                  </details>
+                ))}
+              </CardContent>
+            </Card>
+          ) : null}
 
           {run.status === "blocked" ? (
             <Card className="rounded-none border-destructive/40 shadow-none">

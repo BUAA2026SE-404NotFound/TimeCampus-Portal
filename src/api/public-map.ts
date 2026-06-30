@@ -55,6 +55,14 @@ type PublicMapHome = {
   pois?: PublicMapPoi[]
 }
 
+export async function getPublicMapConfig() {
+  const data = await apiRequest<{ tencentMapKey?: string }>(
+    "/portal/map/config",
+    { auth: false }
+  )
+  return { tencentMapKey: data.tencentMapKey ?? "" }
+}
+
 export async function getPublicMapHome(year?: number) {
   const data = await apiRequest<PublicMapHome>("/portal/map/home", {
     auth: false,

@@ -1,4 +1,5 @@
 import { useMemo, useRef } from "react"
+import { AlertTriangle } from "lucide-react"
 import { gsap } from "gsap"
 import { useGSAP } from "@gsap/react"
 
@@ -198,14 +199,22 @@ export function DashboardPage({ snapshot }: { snapshot: AdminSnapshot }) {
       const mm = gsap.matchMedia()
 
       mm.add("(prefers-reduced-motion: no-preference)", () => {
+        const root = pageRef.current
+        if (!root) return
         const timeline = gsap.timeline({
           defaults: { duration: 0.55, ease: "power2.out" },
         })
+        const cards = root.querySelectorAll("[data-dashboard-card]")
+        const bars = root.querySelectorAll(".dashboard-bar")
+        const lines = root.querySelectorAll(".dashboard-line")
+        const pieSegments = root.querySelectorAll(".dashboard-pie-segment")
 
-        timeline
-          .from("[data-dashboard-card]", { autoAlpha: 0, y: 18, stagger: 0.05 })
-          .from(
-            ".dashboard-bar",
+        if (cards.length) {
+          timeline.from(cards, { autoAlpha: 0, y: 18, stagger: 0.05 })
+        }
+        if (bars.length) {
+          timeline.from(
+            bars,
             {
               scaleY: 0,
               transformOrigin: "bottom center",
@@ -213,13 +222,17 @@ export function DashboardPage({ snapshot }: { snapshot: AdminSnapshot }) {
             },
             "-=0.25"
           )
-          .from(
-            ".dashboard-line",
+        }
+        if (lines.length) {
+          timeline.from(
+            lines,
             { autoAlpha: 0, y: 8, stagger: 0.08 },
             "-=0.2"
           )
-          .from(
-            ".dashboard-pie-segment",
+        }
+        if (pieSegments.length) {
+          timeline.from(
+            pieSegments,
             {
               autoAlpha: 0,
               scale: 0.82,
@@ -228,6 +241,7 @@ export function DashboardPage({ snapshot }: { snapshot: AdminSnapshot }) {
             },
             "-=0.25"
           )
+        }
       })
 
       return () => mm.revert()
@@ -237,7 +251,26 @@ export function DashboardPage({ snapshot }: { snapshot: AdminSnapshot }) {
 
   return (
     <div ref={pageRef} className="flex flex-col gap-4">
+      {snapshot.loadWarnings.length > 0 && (
+        <section
+          role="status"
+          className="flex items-start gap-3 border border-amber-600/50 bg-amber-500/10 p-4 text-sm"
+        >
+          <AlertTriangle className="mt-0.5 size-4 shrink-0 text-amber-700" />
+          <div>
+            <p className="font-semibold">部分运营数据加载失败</p>
+            <p className="mt-1 text-muted-foreground">
+              {snapshot.loadWarnings.join("；")}
+            </p>
+          </div>
+        </section>
+      )}
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        {snapshot.metrics.length === 0 && (
+          <div className="border bg-muted/20 p-6 text-sm text-muted-foreground md:col-span-2 xl:col-span-4">
+            核心统计暂不可用，请根据上方错误信息检查对应接口。
+          </div>
+        )}
         {snapshot.metrics.map((metric) => (
           <Card
             key={metric.label}

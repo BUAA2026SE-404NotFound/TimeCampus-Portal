@@ -4,26 +4,27 @@ on:
   push:
     branches:
       - "**"
+  pull_request:
   workflow_dispatch:
+    inputs:
+      deploy:
+        description: "Deploy the tested dist artifact to the production host"
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: read
 
 concurrency:
-  group: portal-deploy-${{ github.ref }}
+  group: portal-ci-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  deploy:
-    name: Build And Deploy Portal On Server
+  build:
+    name: Test And Build Portal
     runs-on: ubuntu-latest
-    if: ${{ github.event_name != 'push' || github.event.deleted != true }}
     env:
-      SERVER_HOST: ${{ secrets.DEPLOY_HOST }}
-      SERVER_USERNAME: ${{ secrets.DEPLOY_USERNAME || secrets.DEPLOY_USER }}
-      SERVER_PASSWORD: ${{ secrets.DEPLOY_PASSWORD }}
-      PORTAL_REPO_DIR: ${{ secrets.PORTAL_REPO_DIR }}
-      DEPLOY_BRANCH: ${{ github.ref_name }}
       VITE_TENCENT_MAP_KEY: ${{ secrets.VITE_TENCENT_MAP_KEY || secrets.TENCENT_MAP_KEY || 'OM3BZ-JN3W5-XHPI3-IFVNF-57YME-TDBB4' }}
       VITE_CAP_API_ENDPOINT: ${{ secrets.VITE_CAP_API_ENDPOINT || 'https://cap.timecampus.asia/2030d4d5e7/' }}
       VITE_SKIP_CAPTCHA: "false"
@@ -31,86 +32,102 @@ jobs:
       VITE_ADMIN_DOMAIN: admin.timecampus.asia
 
     steps:
-      - name: Build and deploy on cloud server
-        if: ${{ env.SERVER_HOST != '' && env.SERVER_USERNAME != '' && env.SERVER_PASSWORD != '' }}
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint and typecheck
+        run: |
+          pnpm lint
+          pnpm typecheck
+
+      - name: Build
+        run: pnpm build
+
+      - name: Install Playwright Chromium
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Agent workbench E2E
+        run: pnpm test:e2e
+
+      - name: Upload dist artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: timecampus-portal-${{ github.sha }}
+          path: dist/
+          if-no-files-found: error
+
+  deploy:
+    name: Deploy Portal Artifact
+    needs: build
+    runs-on: ubuntu-latest
+    if: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/dev') || (github.event_name == 'workflow_dispatch' && inputs.deploy) }}
+    env:
+      SERVER_HOST: ${{ secrets.DEPLOY_HOST }}
+      SERVER_USERNAME: ${{ secrets.DEPLOY_USERNAME || secrets.DEPLOY_USER }}
+      SERVER_PASSWORD: ${{ secrets.DEPLOY_PASSWORD }}
+
+    steps:
+      - name: Download dist artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: timecampus-portal-${{ github.sha }}
+          path: dist
+
+      - name: Upload dist
+        uses: appleboy/scp-action@v1
+        with:
+          host: ${{ env.SERVER_HOST }}
+          username: ${{ env.SERVER_USERNAME }}
+          password: ${{ env.SERVER_PASSWORD }}
+          source: "dist/**"
+          target: "/home/${{ env.SERVER_USERNAME }}/portal-incoming/${{ github.sha }}"
+          strip_components: 1
+
+      - name: Activate dist
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ env.SERVER_HOST }}
           username: ${{ env.SERVER_USERNAME }}
           password: ${{ env.SERVER_PASSWORD }}
-          command_timeout: 30m
           script: |
             set -euo pipefail
-            DEPLOY_BRANCH="${{ env.DEPLOY_BRANCH }}"
-            PORTAL_REPO_DIR="${{ env.PORTAL_REPO_DIR }}"
             APP_DIR="$HOME/app/dist"
-            BACKUP_DIR="$HOME/app/backup"
-            RELEASE_DIR="$HOME/app/dist.release-${{ github.run_id }}-${{ github.run_attempt }}"
+            INCOMING="$HOME/portal-incoming/${{ github.sha }}"
+            RELEASE_DIR="$HOME/app/dist.release-${{ github.sha }}"
+            BACKUP_DIR="$HOME/app/backups/dist-$(date +%Y%m%d%H%M%S)"
 
-            if [ -n "$PORTAL_REPO_DIR" ] && [ -e "$PORTAL_REPO_DIR/.git" ]; then
-              REPO_DIR="$PORTAL_REPO_DIR"
-            elif [ -e "$HOME/TimeCampus/TimeCampus-Portal/.git" ]; then
-              REPO_DIR="$HOME/TimeCampus/TimeCampus-Portal"
-            elif [ -e "$HOME/TimeCampus-Portal/.git" ]; then
-              REPO_DIR="$HOME/TimeCampus-Portal"
-            else
-              echo "Portal repository not found on server"
-              exit 1
-            fi
+            case "$APP_DIR" in "$HOME/app/dist") ;; *) exit 1 ;; esac
+            case "$RELEASE_DIR" in "$HOME/app/dist.release-"*) ;; *) exit 1 ;; esac
+            test -f "$INCOMING/index.html"
 
-            case "$APP_DIR" in
-              "$HOME"/app/dist) ;;
-              *) echo "Refusing to deploy outside ~/app/dist"; exit 1 ;;
-            esac
-            case "$RELEASE_DIR" in
-              "$HOME"/app/dist.release-*) ;;
-              *) echo "Refusing to use unexpected release directory"; exit 1 ;;
-            esac
-
-            cd "$REPO_DIR"
-            if [ -n "$(git status --porcelain)" ]; then
-              git stash push -u -m "ci-deploy-backup-${{ github.run_id }}-${{ github.run_attempt }}"
-            fi
-            git fetch origin "$DEPLOY_BRANCH"
-            git checkout -B "$DEPLOY_BRANCH" "origin/$DEPLOY_BRANCH"
-
-            if ! command -v pnpm >/dev/null 2>&1; then
-              if command -v corepack >/dev/null 2>&1; then
-                corepack enable
-              fi
-            fi
-            if ! command -v pnpm >/dev/null 2>&1; then
-              echo "pnpm is not installed on the server"
-              exit 1
-            fi
-
-            export VITE_TENCENT_MAP_KEY="${{ env.VITE_TENCENT_MAP_KEY }}"
-            export VITE_CAP_API_ENDPOINT="${{ env.VITE_CAP_API_ENDPOINT }}"
-            export VITE_SKIP_CAPTCHA="${{ env.VITE_SKIP_CAPTCHA }}"
-            export VITE_ADMIN_REDIRECT="${{ env.VITE_ADMIN_REDIRECT }}"
-            export VITE_ADMIN_DOMAIN="${{ env.VITE_ADMIN_DOMAIN }}"
-
-            pnpm install --frozen-lockfile
-            pnpm run lint
-            pnpm run typecheck
-            pnpm run build
-
-            mkdir -p "$RELEASE_DIR" "$BACKUP_DIR"
-            cp -a "$REPO_DIR/dist/." "$RELEASE_DIR"/
-
-            if [ -d "$APP_DIR" ]; then
-              cp -a "$APP_DIR" "$BACKUP_DIR/dist-$(date +%Y%m%d%H%M%S)"
-            fi
-
-            rm -rf "$APP_DIR"
+            rm -rf "$RELEASE_DIR"
+            mv "$INCOMING" "$RELEASE_DIR"
+            mkdir -p "$HOME/app/backups"
+            if [ -d "$APP_DIR" ]; then mv "$APP_DIR" "$BACKUP_DIR"; fi
             mv "$RELEASE_DIR" "$APP_DIR"
             chmod -R a+rX "$APP_DIR"
 
-            sudo nginx -t
+            if ! sudo nginx -t; then
+              rm -rf "$APP_DIR"
+              if [ -d "$BACKUP_DIR" ]; then mv "$BACKUP_DIR" "$APP_DIR"; fi
+              exit 1
+            fi
             sudo systemctl reload nginx
-
             curl -fsS https://www.timecampus.asia/ >/dev/null
-            curl -fsSI https://www.timecampus.asia/admin | grep -i "location: https://admin.timecampus.asia/" >/dev/null
-            curl -fsSI https://www.timecampus.asia/login | grep -i "location: https://admin.timecampus.asia/login" >/dev/null
-            curl -fsSI https://www.timecampus.asia/register | grep -i "location: https://admin.timecampus.asia/register" >/dev/null
-            echo "Portal deployment completed successfully"
+            find "$HOME/app/backups" -maxdepth 1 -type d -name 'dist-*' \
+              -printf '%T@ %p\n' | sort -nr | tail -n +6 | cut -d' ' -f2- | xargs -r rm -rf
+            echo "Portal artifact is healthy"
